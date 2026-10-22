@@ -91,8 +91,11 @@ export function CinematicHero() {
             Synthetic visualization · data audit in progress
           </span>
           <span className="hidden flex-col items-center gap-1 text-[#8FA9FF]/70 sm:flex">
-            <span>Scroll to explore</span>
+            <span>Drag to rotate · scroll to explore</span>
             <span className="h-6 w-px bg-gradient-to-b from-[#8FA9FF]/60 to-transparent" />
+          </span>
+          <span className="text-center text-[#8FA9FF]/70 sm:hidden">
+            Swipe horizontally to rotate
           </span>
           <span>Powered by Full-S3 CPGMoE · GRCh38</span>
         </div>

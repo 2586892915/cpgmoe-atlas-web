@@ -526,7 +526,9 @@ export function CinematicCanvas() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.4 : 1.8));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
-    renderer.domElement.className = "pointer-events-none";
+    renderer.domElement.style.pointerEvents = "auto";
+    renderer.domElement.style.cursor = "grab";
+    renderer.domElement.style.touchAction = "pan-y";
     renderer.domElement.dataset.cinematicWebgl = "true";
     mount.appendChild(renderer.domElement);
 
@@ -590,6 +592,60 @@ export function CinematicCanvas() {
     const clock = new THREE.Clock();
     let frame = 0;
     let progress = 0;
+    let dragging = false;
+    let hasInteracted = false;
+    let lastX = 0;
+    let lastY = 0;
+    let userRotY = 0;
+    let userRotX = 0;
+    let targetRotY = 0;
+    let targetRotX = 0;
+    let velocityY = 0;
+    let velocityX = 0;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      dragging = true;
+      hasInteracted = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      velocityY = 0;
+      velocityX = 0;
+      renderer.domElement.style.cursor = "grabbing";
+      try {
+        renderer.domElement.setPointerCapture(event.pointerId);
+      } catch {
+        // Ignore capture failures on older browsers.
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      targetRotY += dx * 0.006;
+      targetRotX = THREE.MathUtils.clamp(targetRotX + dy * 0.004, -0.7, 0.7);
+      velocityY = dx * 0.006;
+      velocityX = dy * 0.004;
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      renderer.domElement.style.cursor = "grab";
+      try {
+        renderer.domElement.releasePointerCapture(event.pointerId);
+      } catch {
+        // Ignore capture release failures.
+      }
+    };
+
+    renderer.domElement.addEventListener("pointerdown", onPointerDown);
+    renderer.domElement.addEventListener("pointermove", onPointerMove);
+    renderer.domElement.addEventListener("pointerup", onPointerUp);
+    renderer.domElement.addEventListener("pointercancel", onPointerUp);
     const start = new THREE.Vector3(
       0,
       0.4,
@@ -617,9 +673,20 @@ export function CinematicCanvas() {
       current.copy(start).lerp(end, progress);
       camera.position.lerp(current, 0.1);
       camera.lookAt(0, -0.1, 0);
+      if (!dragging) {
+        targetRotY += velocityY;
+        targetRotX = THREE.MathUtils.clamp(targetRotX + velocityX, -0.7, 0.7);
+        velocityY *= 0.94;
+        velocityX *= 0.9;
+        if (!hasInteracted && Math.abs(velocityY) < 0.0006) targetRotY += 0.0011;
+      }
+      userRotY += (targetRotY - userRotY) * 0.12;
+      userRotX += (targetRotX - userRotX) * 0.12;
+      renderer.domElement.dataset.rotY = userRotY.toFixed(3);
+      renderer.domElement.dataset.rotX = userRotX.toFixed(3);
       chromosome.rotation.y =
-        progress * 0.55 + Math.sin(time * 0.05) * 0.025;
-      chromosome.rotation.x = Math.sin(time * 0.07) * 0.025;
+        progress * 0.55 + Math.sin(time * 0.05) * 0.025 + userRotY;
+      chromosome.rotation.x = Math.sin(time * 0.07) * 0.025 + userRotX;
       chromosome.position.y = -1.1 + Math.sin(time * 0.2) * 0.015;
 
       if (mouse.x !== 9999) {
@@ -657,6 +724,10 @@ export function CinematicCanvas() {
       window.removeEventListener("pointermove", onMouseMove);
       window.removeEventListener("pointerout", onMouseOut);
       window.removeEventListener("resize", onResize);
+      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+      renderer.domElement.removeEventListener("pointermove", onPointerMove);
+      renderer.domElement.removeEventListener("pointerup", onPointerUp);
+      renderer.domElement.removeEventListener("pointercancel", onPointerUp);
       scene.traverse((object) => {
         const mesh = object as THREE.Mesh;
         if (mesh.geometry) mesh.geometry.dispose();
