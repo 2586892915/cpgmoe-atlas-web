@@ -196,21 +196,21 @@ function chromatidPath(side: number): THREE.Vector3[] {
   ];
   return samples.map((u) => {
     const d = u - CENTROMERE_T;
-    const spread = 0.34 + 3.54 * Math.pow(Math.abs(d), 1.06);
-    const bow = Math.sin(Math.abs(d) * Math.PI * 1.7) * 0.06;
+    const spread = 0.14 + 3.0 * Math.pow(Math.abs(d), 0.95);
+    const bow = Math.sin(Math.abs(d) * Math.PI * 1.7) * 0.03;
     return new THREE.Vector3(
       side * (spread + bow),
       -d * 4.6,
-      side * (0.1 + 0.62 * Math.abs(d)) + Math.sin(u * Math.PI * 2) * 0.05,
+      side * (0.08 + 0.62 * Math.abs(d)) + Math.sin(u * Math.PI * 2) * 0.04,
     );
   });
 }
 
 function chromatidRadius(t: number, thickness: number): number {
-  const taper = Math.pow(Math.sin(Math.PI * t), 0.32);
+  const taper = Math.pow(Math.sin(Math.PI * t), 0.36);
   const waist =
-    1 - 0.5 * Math.exp(-Math.pow((t - CENTROMERE_T) / 0.055, 2));
-  return (0.055 + 0.295 * taper) * waist * thickness;
+    1 - 0.45 * Math.exp(-Math.pow((t - CENTROMERE_T) / 0.06, 2));
+  return (0.035 + 0.205 * taper) * waist * thickness;
 }
 
 // Deterministic variable-width band table, shared by both sister chromatids so
@@ -224,7 +224,7 @@ const BAND_TABLE = (() => {
     return seed / 233280;
   };
   while (cursor < 1) {
-    table.push({ start: cursor, level: next() > 0.5 ? 1 : 0.35 });
+    table.push({ start: cursor, level: next() > 0.5 ? 1 : 0.42 });
     cursor += 0.006 + next() * 0.02;
   }
   return table;
@@ -271,10 +271,10 @@ function buildChromatidCloud(
     attempts += 1;
     const t = Math.random();
     const band = bandLevel(t);
-    if (band < 0.6 && Math.random() < 0.3) continue;
+    if (band < 0.6 && Math.random() < 0.2) continue;
     const localRadius = chromatidRadius(t, thickness);
     const waist = Math.exp(-Math.pow((t - CENTROMERE_T) / 0.075, 2));
-    const volumeKeep = Math.max(0.35, localRadius / (0.33 * thickness));
+    const volumeKeep = Math.max(0.35, localRadius / (0.24 * thickness));
     if (Math.random() > volumeKeep * (1 - 0.62 * waist)) continue;
     curve.getPointAt(t, point);
     const frameIndex = Math.min(179, Math.floor(t * 180));
@@ -355,7 +355,7 @@ function buildChromatidCloud(
         }
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
-         gl_PointSize = (2.2 * aRandom + 0.4) * (15.0 / -mvPosition.z);
+         gl_PointSize = (2.2 * aRandom + 0.4) * (11.0 / -mvPosition.z);
         float tint = 0.5 + 0.5 * snoise(position * 0.6 + uTime * 0.08);
          float shade = clamp(0.45 * tint + 0.55 * aBand, 0.0, 1.0);
          vColor = mix(uDeep, uBand, shade);
@@ -588,7 +588,7 @@ function makeMembrane(
         vec3 dark = vec3(0.11, 0.20, 0.66);
         vec3 light = vec3(0.45, 0.75, 1.0);
         vec3 bandColor = mix(dark, light, vBand);
-        gl_FragColor = vec4(bandColor, rim * 0.16 + 0.02 + vBand * 0.02);
+        gl_FragColor = vec4(bandColor, rim * 0.12 + 0.015 + vBand * 0.02);
       }
     `,
     transparent: true,
@@ -612,8 +612,8 @@ function makeHelixCurve(
     const angle = t * Math.PI * 18 + phase;
     const offset = new THREE.Vector3()
       .copy(frames.normals[i])
-      .multiplyScalar(Math.cos(angle) * 0.085)
-      .addScaledVector(frames.binormals[i], Math.sin(angle) * 0.085);
+      .multiplyScalar(Math.cos(angle) * 0.06)
+      .addScaledVector(frames.binormals[i], Math.sin(angle) * 0.06);
     points.push(point.add(offset));
   }
   return new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5);
@@ -633,7 +633,7 @@ function makeFibers(
     const geometry = new THREE.TubeGeometry(
       makeHelixCurve(curve, phase, segments),
       segments,
-          0.009,
+          0.005,
       5,
       false,
     );
@@ -661,7 +661,7 @@ function makeFibers(
           float brightness = smoothstep(0.2, 0.9, pulse);
           float head = smoothstep(0.92, 1.0, sin(flow - 0.2));
           vec3 color = mix(uColor2, uColor1, brightness + head);
-          gl_FragColor = vec4(color * (0.9 + brightness * 1.4), 1.0);
+          gl_FragColor = vec4(color * (0.5 + brightness * 0.8), 1.0);
         }
       `,
       transparent: true,
@@ -727,7 +727,7 @@ export function CinematicCanvas() {
     const leftFibers = makeFibers(curves.left, mobile);
     const rightFibers = makeFibers(curves.right, mobile);
     const core = buildCore(curves, mobile ? 110 : 200);
-    const bridge = buildBridge(curves, mobile ? 28 : 46);
+    const bridge = buildBridge(curves, mobile ? 18 : 30);
     chromosome.add(
       leftCloud,
       rightCloud,
