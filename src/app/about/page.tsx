@@ -20,7 +20,7 @@ export default function AboutPage() {
           CPGMoE Atlas is a Phase 0 interface prototype for exploring predicted,
           panel-based single-cell DNA methylation inferred from RNA expression.
           It exists to lock the data contracts, interaction model, and evidence
-          boundaries before audited human data and an approved Full-S3
+          boundaries before audited human data and an approved CPGMoE
           checkpoint are connected.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -95,7 +95,7 @@ export default function AboutPage() {
             <p className="micro-label">At a glance</p>
             <dl className="mt-2 divide-y divide-line text-[12px]">
               {[
-                ["Primary model", "Full-S3 CPGMoE"],
+                ["Primary model", "CPGMoE"],
                 ["Training domain", "TCGA bulk multi-omics"],
                 ["Target space", "Illumina 450K panel"],
                 ["Genome build", "GRCh38 / hg38"],

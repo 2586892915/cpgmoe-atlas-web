@@ -59,12 +59,9 @@ export function CinematicHero() {
             transform: "translateY(calc(var(--hero-progress, 0) * -28px))",
           }}
         >
-          <p className="text-[10px] font-medium uppercase text-[#8FA9FF]">
-            Predicted single-cell DNA methylation
-          </p>
           <h1
             id="hero-title"
-            className="mt-4 text-[48px] font-semibold leading-none text-[#F2F6FF] [text-shadow:0_4px_40px_rgba(3,6,22,0.8)] sm:text-[66px] lg:text-[78px]"
+            className="text-[48px] font-semibold leading-none text-[#F2F6FF] [text-shadow:0_4px_40px_rgba(3,6,22,0.8)] sm:text-[66px] lg:text-[78px]"
           >
             CPGMoE Atlas
           </h1>
@@ -88,7 +85,7 @@ export function CinematicHero() {
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-2 px-5 pb-6 text-[10px] text-[#7F93C8] sm:flex-row sm:items-end sm:justify-between sm:px-8">
           <span className="inline-flex items-center gap-2">
             <span className="h-1 w-1 rounded-full bg-[#E6B36F]" aria-hidden="true" />
-            Synthetic visualization · data audit in progress
+            Synthetic demo · audit in progress
           </span>
           <span className="hidden flex-col items-center gap-1 text-[#8FA9FF]/70 sm:flex">
             <span>Drag to rotate · scroll to explore</span>
@@ -97,7 +94,7 @@ export function CinematicHero() {
           <span className="text-center text-[#8FA9FF]/70 sm:hidden">
             Swipe horizontally to rotate
           </span>
-          <span>Powered by Full-S3 CPGMoE · GRCh38</span>
+          <span>CPGMoE</span>
         </div>
       </div>
     </section>

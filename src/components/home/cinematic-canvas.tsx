@@ -93,46 +93,163 @@ function backgroundTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+function makeHaloTexture(): THREE.CanvasTexture {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (context) {
+    const gradient = context.createRadialGradient(
+      size / 2,
+      size / 2,
+      0,
+      size / 2,
+      size / 2,
+      size / 2,
+    );
+    gradient.addColorStop(0, "rgba(47, 143, 163, 0.2)");
+    gradient.addColorStop(0.4, "rgba(47, 143, 163, 0.08)");
+    gradient.addColorStop(1, "rgba(47, 143, 163, 0)");
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function makeDotTexture(): THREE.CanvasTexture {
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (context) {
+    const gradient = context.createRadialGradient(
+      size / 2,
+      size / 2,
+      0,
+      size / 2,
+      size / 2,
+      size / 2,
+    );
+    gradient.addColorStop(0, "rgba(255,255,255,0.9)");
+    gradient.addColorStop(0.4, "rgba(190,215,255,0.35)");
+    gradient.addColorStop(1, "rgba(190,215,255,0)");
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function makeDust(
+  count: number,
+): THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial> {
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i += 1) {
+    const radius = 3.6 + Math.random() * 4.4;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = radius * Math.cos(phi) * 0.7;
+    positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta) * 0.7;
+  }
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    map: makeDotTexture(),
+    color: new THREE.Color("#7FA0FF"),
+    size: 0.035,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.22,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  return new THREE.Points(geometry, material);
+}
+
 function makeChromatidCurves(): {
   left: THREE.CatmullRomCurve3;
   right: THREE.CatmullRomCurve3;
 } {
-  const left = [
-    [-1.55, 2.25, 0.28],
-    [-1.2, 1.9, 0.34],
-    [-0.82, 1.3, 0.3],
-    [-0.46, 0.65, 0.24],
-    [-0.26, 0.0, 0.18],
-    [-0.46, -0.7, 0.16],
-    [-0.9, -1.5, 0.1],
-    [-1.35, -2.25, 0.02],
-    [-1.68, -2.7, -0.04],
+  const toCurve = (values: THREE.Vector3[]) =>
+    new THREE.CatmullRomCurve3(values, false, "catmullrom", 0.5);
+  return {
+    left: toCurve(chromatidPath(-1)),
+    right: toCurve(chromatidPath(1)),
+  };
+}
+
+const CENTROMERE_T = 0.44;
+
+// A single sister chromatid: two near-straight arms meeting at the primary
+// constriction, splayed apart in depth so the pair reads as a 3D structure.
+function chromatidPath(side: number): THREE.Vector3[] {
+  const samples = [
+    0, 0.08, 0.16, 0.24, 0.32, 0.39, CENTROMERE_T, 0.49, 0.56, 0.64, 0.72,
+    0.8, 0.88, 0.94, 1,
   ];
-  const right = [
-    [1.55, 2.25, -0.28],
-    [1.2, 1.9, -0.34],
-    [0.82, 1.3, -0.3],
-    [0.46, 0.65, -0.24],
-    [0.26, 0.0, -0.18],
-    [0.46, -0.7, -0.16],
-    [0.9, -1.5, -0.1],
-    [1.35, -2.25, -0.02],
-    [1.68, -2.7, 0.04],
-  ];
-  const toCurve = (values: number[][]) =>
-    new THREE.CatmullRomCurve3(
-      values.map(([x, y, z]) => new THREE.Vector3(x, y, z)),
-      false,
-      "catmullrom",
-      0.5,
+  return samples.map((u) => {
+    const d = u - CENTROMERE_T;
+    const spread = 0.34 + 3.54 * Math.pow(Math.abs(d), 1.06);
+    const bow = Math.sin(Math.abs(d) * Math.PI * 1.7) * 0.06;
+    return new THREE.Vector3(
+      side * (spread + bow),
+      -d * 4.6,
+      side * (0.1 + 0.62 * Math.abs(d)) + Math.sin(u * Math.PI * 2) * 0.05,
     );
-  return { left: toCurve(left), right: toCurve(right) };
+  });
 }
 
 function chromatidRadius(t: number, thickness: number): number {
-  const taper = Math.pow(Math.sin(Math.PI * t), 0.35);
-  const waist = 1 - 0.42 * Math.exp(-Math.pow((t - 0.5) / 0.06, 2));
-  return (0.05 + 0.23 * taper) * waist * thickness;
+  const taper = Math.pow(Math.sin(Math.PI * t), 0.32);
+  const waist =
+    1 - 0.5 * Math.exp(-Math.pow((t - CENTROMERE_T) / 0.055, 2));
+  return (0.055 + 0.295 * taper) * waist * thickness;
+}
+
+// Deterministic variable-width band table, shared by both sister chromatids so
+// the pair carries the same G-band style pattern.
+const BAND_TABLE = (() => {
+  const table: { start: number; level: number }[] = [];
+  let cursor = 0;
+  let seed = 0.37;
+  const next = () => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  };
+  while (cursor < 1) {
+    table.push({ start: cursor, level: next() > 0.5 ? 1 : 0.35 });
+    cursor += 0.006 + next() * 0.02;
+  }
+  return table;
+})();
+
+function bandLevel(t: number): number {
+  let low = 0;
+  let high = BAND_TABLE.length - 1;
+  let found = 0;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    if (BAND_TABLE[mid].start <= t) {
+      found = mid;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return BAND_TABLE[found].level;
+}
+
+function telomereCap(t: number): number {
+  const edge = 0.075;
+  const distance = Math.min(t, 1 - t) / edge;
+  return Math.max(0, 1 - distance);
 }
 
 function buildChromatidCloud(
@@ -141,18 +258,27 @@ function buildChromatidCloud(
   thickness: number,
 ): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
   const frames = curve.computeFrenetFrames(180, false);
-  const positions = new Float32Array(count * 3);
-  const randoms = new Float32Array(count);
-  const glows = new Float32Array(count);
+  const positions: number[] = [];
+  const randoms: number[] = [];
+  const glows: number[] = [];
+  const bands: number[] = [];
+  const caps: number[] = [];
   const point = new THREE.Vector3();
   const direction = new THREE.Vector3();
 
-  for (let i = 0; i < count; i += 1) {
+  let attempts = 0;
+  while (randoms.length < count && attempts < count * 4) {
+    attempts += 1;
     const t = Math.random();
+    const band = bandLevel(t);
+    if (band < 0.6 && Math.random() < 0.3) continue;
+    const localRadius = chromatidRadius(t, thickness);
+    const waist = Math.exp(-Math.pow((t - CENTROMERE_T) / 0.075, 2));
+    const volumeKeep = Math.max(0.35, localRadius / (0.33 * thickness));
+    if (Math.random() > volumeKeep * (1 - 0.62 * waist)) continue;
     curve.getPointAt(t, point);
     const frameIndex = Math.min(179, Math.floor(t * 180));
-    const radius =
-      chromatidRadius(t, thickness) * (0.62 + 0.38 * Math.random());
+    const radius = localRadius * Math.sqrt(0.08 + 0.92 * Math.random());
     const angle = Math.random() * Math.PI * 2;
     direction
       .copy(frames.normals[frameIndex])
@@ -160,46 +286,67 @@ function buildChromatidCloud(
       .addScaledVector(frames.binormals[frameIndex], Math.sin(angle) * 0.86)
       .normalize();
     point.addScaledVector(direction, radius);
-    positions[i * 3] = point.x;
-    positions[i * 3 + 1] = point.y;
-    positions[i * 3 + 2] = point.z;
-    randoms[i] = Math.random();
-    glows[i] = Math.exp(-Math.pow((t - 0.5) / 0.095, 2));
+    positions.push(point.x, point.y, point.z);
+    randoms.push(Math.random());
+    glows.push(Math.exp(-Math.pow((t - CENTROMERE_T) / 0.06, 2)));
+    bands.push(band);
+    caps.push(telomereCap(t));
   }
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("aRandom", new THREE.BufferAttribute(randoms, 1));
-  geometry.setAttribute("aGlow", new THREE.BufferAttribute(glows, 1));
+  geometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(Float32Array.from(positions), 3),
+  );
+  geometry.setAttribute(
+    "aRandom",
+    new THREE.BufferAttribute(Float32Array.from(randoms), 1),
+  );
+  geometry.setAttribute(
+    "aGlow",
+    new THREE.BufferAttribute(Float32Array.from(glows), 1),
+  );
+  geometry.setAttribute(
+    "aBand",
+    new THREE.BufferAttribute(Float32Array.from(bands), 1),
+  );
+  geometry.setAttribute(
+    "aCap",
+    new THREE.BufferAttribute(Float32Array.from(caps), 1),
+  );
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
       uMouse: { value: new THREE.Vector3(9999, 9999, 9999) },
-      uDeep: { value: new THREE.Color("#1B3BFF") },
+      uDeep: { value: new THREE.Color("#1E32D6") },
       uPale: { value: new THREE.Color("#9FB8FF") },
       uWarm: { value: new THREE.Color("#FF9FCE") },
       uGold: { value: new THREE.Color("#D9A45B") },
+      uBand: { value: new THREE.Color("#8FD9FF") },
+      uCap: { value: new THREE.Color("#CFF3FF") },
     },
     vertexShader: `
       uniform float uTime;
       uniform vec3 uMouse;
       attribute float aRandom;
       attribute float aGlow;
+      attribute float aBand;
+      attribute float aCap;
       varying float vAlpha;
       varying vec3 vColor;
-      varying float vGlow;
       ${SHADER_UTILS}
       uniform vec3 uDeep;
       uniform vec3 uPale;
       uniform vec3 uWarm;
       uniform vec3 uGold;
+      uniform vec3 uBand;
+      uniform vec3 uCap;
       void main() {
         vec3 pos = position;
         float wave = snoise(pos * 0.75 + uTime * 0.22);
         pos += normalize(pos) * wave * 0.018;
         pos += curlNoise(pos * 1.2 + uTime * 0.1) * 0.016;
-        vGlow = aGlow;
         float distanceToMouse = distance(pos, uMouse);
         if (distanceToMouse < 2.6) {
           vec3 repulse = normalize(pos - uMouse);
@@ -208,23 +355,30 @@ function buildChromatidCloud(
         }
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
-        gl_PointSize = (1.8 * aRandom + 0.5) * (10.0 / -mvPosition.z);
+         gl_PointSize = (2.2 * aRandom + 0.4) * (15.0 / -mvPosition.z);
         float tint = 0.5 + 0.5 * snoise(position * 0.6 + uTime * 0.08);
-        vColor = mix(uDeep, uPale, tint);
-        vColor = mix(vColor, mix(uWarm, uGold, aRandom), aGlow * 0.55);
-        vAlpha = 0.22 + 0.25 * aRandom;
+         float shade = clamp(0.45 * tint + 0.55 * aBand, 0.0, 1.0);
+         vColor = mix(uDeep, uBand, shade);
+         vColor = mix(vColor, uCap, aCap * 0.35);
+         vColor = mix(vColor, mix(uWarm, uGold, aRandom), aGlow * 0.3);
+         vColor = mix(vColor, uDeep * 0.62, aGlow * 0.62);
+        float camDist = length(mvPosition.xyz);
+        float depthFade = smoothstep(13.0, 6.0, camDist);
+        vAlpha =
+          (0.22 + 0.22 * aRandom) *
+          (0.62 + 0.5 * aBand) *
+          (1.0 - 0.68 * aGlow) *
+          (0.5 + 0.5 * depthFade);
       }
     `,
     fragmentShader: `
       varying float vAlpha;
       varying vec3 vColor;
-      varying float vGlow;
       void main() {
         float distanceToCenter = length(gl_PointCoord - 0.5);
         if (distanceToCenter > 0.5) discard;
         float alpha = (1.0 - smoothstep(0.16, 0.5, distanceToCenter)) * vAlpha;
-        vec3 color = vColor + vec3(0.2) * smoothstep(0.7, 1.0, vGlow);
-        gl_FragColor = vec4(color, alpha);
+        gl_FragColor = vec4(vColor, alpha);
       }
     `,
     transparent: true,
@@ -279,7 +433,9 @@ function makeWarmPoints(
         gl_Position = projectionMatrix * mvPosition;
         gl_PointSize = ${size.toFixed(1)} * (0.7 + 0.6 * aRandom) * (10.0 / -mvPosition.z);
         vColor = mix(uGold, uWarm, aRandom);
-        vAlpha = 0.55 + 0.4 * aRandom;
+        float camDist = length(mvPosition.xyz);
+        float depthFade = smoothstep(13.0, 6.0, camDist);
+        vAlpha = (0.34 + 0.28 * aRandom) * (0.5 + 0.5 * depthFade);
       }
     `,
     fragmentShader: `
@@ -304,31 +460,41 @@ function buildCore(curves: {
   right: THREE.CatmullRomCurve3;
 }, count: number): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
   const positions: THREE.Vector3[] = [];
-  for (let i = 0; i < count; i += 1) {
+  let attempts = 0;
+  while (positions.length < count && attempts < count * 4) {
+    attempts += 1;
     const curve = Math.random() > 0.5 ? curves.left : curves.right;
     const t = Math.random();
+    const waist = Math.exp(-Math.pow((t - CENTROMERE_T) / 0.07, 2));
+    if (Math.random() < 0.6 * waist) continue;
     const point = curve.getPointAt(t);
-    point.x += (Math.random() - 0.5) * 0.07;
-    point.y += (Math.random() - 0.5) * 0.07;
-    point.z += (Math.random() - 0.5) * 0.07;
+    point.x += (Math.random() - 0.5) * 0.045;
+    point.y += (Math.random() - 0.5) * 0.045;
+    point.z += (Math.random() - 0.5) * 0.045;
     positions.push(point);
   }
-  return makeWarmPoints(positions, 3.5);
+  return makeWarmPoints(positions, 1.8);
 }
 
-function buildBridge(count: number): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
+function buildBridge(
+  curves: {
+    left: THREE.CatmullRomCurve3;
+    right: THREE.CatmullRomCurve3;
+  },
+  count: number,
+): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
   const positions: THREE.Vector3[] = [];
-  const start = new THREE.Vector3(-0.18, 0, 0.18);
-  const end = new THREE.Vector3(0.18, 0, -0.18);
+  const start = curves.left.getPointAt(CENTROMERE_T);
+  const end = curves.right.getPointAt(CENTROMERE_T);
   for (let i = 0; i < count; i += 1) {
     const t = Math.random();
     const point = start.clone().lerp(end, t);
-    point.x += (Math.random() - 0.5) * 0.06;
-    point.y += (Math.random() - 0.5) * 0.12;
-    point.z += (Math.random() - 0.5) * 0.06;
+    point.x += (Math.random() - 0.5) * 0.07;
+    point.y += (Math.random() - 0.5) * 0.1;
+    point.z += (Math.random() - 0.5) * 0.07;
     positions.push(point);
   }
-  return makeWarmPoints(positions, 5);
+  return makeWarmPoints(positions, 2.2);
 }
 
 function buildMembraneGeometry(
@@ -341,13 +507,15 @@ function buildMembraneGeometry(
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
+  const bands: number[] = [];
   const indices: number[] = [];
   const point = new THREE.Vector3();
   const normal = new THREE.Vector3();
   for (let i = 0; i <= tubular; i += 1) {
     const t = i / tubular;
     curve.getPointAt(t, point);
-    const radius = chromatidRadius(t, thickness) * 1.18 + 0.018;
+    const radius = chromatidRadius(t, thickness) * 1.12 + 0.016;
+    const level = bandLevel(t);
     for (let j = 0; j <= radial; j += 1) {
       const angle = (j / radial) * Math.PI * 2;
       normal
@@ -362,6 +530,7 @@ function buildMembraneGeometry(
       );
       normals.push(normal.x, normal.y, normal.z);
       uvs.push(t, j / radial);
+      bands.push(level);
     }
   }
   for (let i = 0; i < tubular; i += 1) {
@@ -378,6 +547,7 @@ function buildMembraneGeometry(
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geometry.setAttribute("band", new THREE.Float32BufferAttribute(bands, 1));
   geometry.computeBoundingSphere();
   return geometry;
 }
@@ -390,14 +560,16 @@ function makeMembrane(
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uColor: { value: new THREE.Color("#6E8BFF") },
     },
     vertexShader: `
       uniform float uTime;
+      attribute float band;
       varying vec3 vNormal;
       varying vec3 vViewPosition;
+      varying float vBand;
       ${SHADER_UTILS}
       void main() {
+        vBand = band;
         vec3 pos = position;
         pos += normal * snoise(pos * 1.1 + uTime * 0.18) * 0.018;
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
@@ -407,13 +579,16 @@ function makeMembrane(
       }
     `,
     fragmentShader: `
-      uniform vec3 uColor;
       varying vec3 vNormal;
       varying vec3 vViewPosition;
+      varying float vBand;
       void main() {
         float rim = 1.0 - clamp(dot(normalize(vViewPosition), normalize(vNormal)), 0.0, 1.0);
         rim = pow(rim, 6.0);
-        gl_FragColor = vec4(uColor, rim * 0.14);
+        vec3 dark = vec3(0.11, 0.20, 0.66);
+        vec3 light = vec3(0.45, 0.75, 1.0);
+        vec3 bandColor = mix(dark, light, vBand);
+        gl_FragColor = vec4(bandColor, rim * 0.16 + 0.02 + vBand * 0.02);
       }
     `,
     transparent: true,
@@ -434,11 +609,11 @@ function makeHelixCurve(
   for (let i = 0; i <= segments; i += 1) {
     const t = i / segments;
     const point = base.getPointAt(t);
-    const angle = t * Math.PI * 14 + phase;
+    const angle = t * Math.PI * 18 + phase;
     const offset = new THREE.Vector3()
       .copy(frames.normals[i])
-      .multiplyScalar(Math.cos(angle) * 0.075)
-      .addScaledVector(frames.binormals[i], Math.sin(angle) * 0.075);
+      .multiplyScalar(Math.cos(angle) * 0.085)
+      .addScaledVector(frames.binormals[i], Math.sin(angle) * 0.085);
     points.push(point.add(offset));
   }
   return new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5);
@@ -458,7 +633,7 @@ function makeFibers(
     const geometry = new THREE.TubeGeometry(
       makeHelixCurve(curve, phase, segments),
       segments,
-      0.006,
+          0.009,
       5,
       false,
     );
@@ -486,7 +661,7 @@ function makeFibers(
           float brightness = smoothstep(0.2, 0.9, pulse);
           float head = smoothstep(0.92, 1.0, sin(flow - 0.2));
           vec3 color = mix(uColor2, uColor1, brightness + head);
-          gl_FragColor = vec4(color * (1.2 + brightness * 2.0), 1.0);
+          gl_FragColor = vec4(color * (0.9 + brightness * 1.4), 1.0);
         }
       `,
       transparent: true,
@@ -536,23 +711,23 @@ export function CinematicCanvas() {
     composer.addPass(new RenderPass(scene, camera));
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      mobile ? 0.2 : 0.24,
-      0.34,
-      0.5,
+      mobile ? 0.15 : 0.16,
+      0.32,
+      0.7,
     );
     composer.addPass(bloom);
 
     const curves = makeChromatidCurves();
     const chromosome = new THREE.Group();
-    const count = mobile ? 3200 : 7000;
+    const count = mobile ? 5200 : 12000;
     const leftCloud = buildChromatidCloud(curves.left, count, 1);
     const rightCloud = buildChromatidCloud(curves.right, count, 0.96);
     const leftMembrane = makeMembrane(curves.left, 1);
     const rightMembrane = makeMembrane(curves.right, 0.96);
     const leftFibers = makeFibers(curves.left, mobile);
     const rightFibers = makeFibers(curves.right, mobile);
-    const core = buildCore(curves, mobile ? 450 : 950);
-    const bridge = buildBridge(mobile ? 240 : 480);
+    const core = buildCore(curves, mobile ? 110 : 200);
+    const bridge = buildBridge(curves, mobile ? 28 : 46);
     chromosome.add(
       leftCloud,
       rightCloud,
@@ -566,6 +741,23 @@ export function CinematicCanvas() {
     chromosome.position.y = -1.1;
     chromosome.scale.setScalar(0.9);
     scene.add(chromosome);
+
+    const halo = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: makeHaloTexture(),
+        color: new THREE.Color("#2F8FA3"),
+        transparent: true,
+        opacity: 0.12,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    halo.position.set(0, -0.8, -3.2);
+    halo.scale.set(8, 8, 1);
+    scene.add(halo);
+
+    const dust = makeDust(mobile ? 260 : 520);
+    scene.add(dust);
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2(9999, 9999);
@@ -592,6 +784,7 @@ export function CinematicCanvas() {
     const clock = new THREE.Clock();
     let frame = 0;
     let progress = 0;
+    let lastTime = 0;
     let dragging = false;
     let hasInteracted = false;
     let lastX = 0;
@@ -661,6 +854,8 @@ export function CinematicCanvas() {
     const animate = () => {
       frame = requestAnimationFrame(animate);
       const time = clock.getElapsedTime();
+      const delta = Math.min(0.05, time - lastTime);
+      lastTime = time;
 
       if (track) {
         const rect = track.getBoundingClientRect();
@@ -687,6 +882,7 @@ export function CinematicCanvas() {
       chromosome.rotation.y =
         progress * 0.55 + Math.sin(time * 0.05) * 0.025 + userRotY;
       chromosome.rotation.x = Math.sin(time * 0.07) * 0.025 + userRotX;
+      dust.rotation.y += delta * 0.012;
       chromosome.position.y = -1.1 + Math.sin(time * 0.2) * 0.015;
 
       if (mouse.x !== 9999) {

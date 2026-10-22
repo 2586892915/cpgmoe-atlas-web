@@ -146,7 +146,7 @@ export function CinematicHeader() {
             </nav>
 
             <div className="flex flex-col gap-1 border-t border-white/10 py-4 text-[10px] text-[#5F7085] sm:flex-row sm:items-center sm:justify-between">
-              <span>CPGMoE Atlas · Full-S3 CPGMoE · Research preview</span>
+              <span>CPGMoE Atlas · CPGMoE · Research preview</span>
               <span>Synthetic visualization · no experimental data</span>
             </div>
           </div>

@@ -12,7 +12,7 @@
 | `metadata_only` | 仅登记元数据，未通过 RNA QC | 否 |
 | `rna_qc_passed` | 通过预设 RNA QC 阈值 | 候选 |
 | `encoded` | 存在 latent representation | 候选 |
-| `predicted` | 存在带 provenance 的 Full-S3 输出 | 已预测 |
+| `predicted` | 存在带 provenance 的 CPGMoE 输出 | 已预测 |
 | `restricted` | licence/consent 受限 | 否 |
 | `excluded` | 明确排除 | 否 |
 

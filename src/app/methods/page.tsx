@@ -38,7 +38,7 @@ export default function MethodsPage() {
         <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
           This page defines what the prototype does, what it does not do, and
           how the contract is expected to change when audited data and an
-          approved Full-S3 checkpoint are available.
+          approved CPGMoE checkpoint are available.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge tone="primary" dot>Phase 0</Badge>
@@ -93,7 +93,7 @@ export default function MethodsPage() {
 
           <Section id="model" title="Model">
             <p>
-              Full-S3 CPGMoE is the primary model family. It is trained on bulk
+              CPGMoE is the primary model family. It is trained on bulk
               multi-omics data and predicts DNA methylation for a specified
               Illumina 450K panel CpG space. The portal uses the term{" "}
               <em>predicted DNA methylation</em> throughout; it does not imply
@@ -197,7 +197,7 @@ export default function MethodsPage() {
               <li><span className="font-medium text-ink">Indexed</span> — file inventory and metadata registered.</li>
               <li><span className="font-medium text-ink">RNA-QC passed</span> — predefined QC thresholds met.</li>
               <li><span className="font-medium text-ink">Encoded</span> — a latent representation exists for eligible cells.</li>
-              <li><span className="font-medium text-ink">Predicted</span> — Full-S3 output exists with provenance.</li>
+              <li><span className="font-medium text-ink">Predicted</span> — CPGMoE output exists with provenance.</li>
               <li><span className="font-medium text-ink">Excluded</span> — blocked by licence, consent, or eligibility.</li>
             </ol>
           </Section>

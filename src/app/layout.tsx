@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: "%s · CPGMoE Atlas",
   },
   description:
-    "A searchable atlas of predicted, panel-based single-cell DNA methylation inferred from RNA expression by Full-S3 CPGMoE. Phase 0 synthetic demo.",
+    "A searchable atlas of predicted, panel-based single-cell DNA methylation inferred from RNA expression by CPGMoE. Phase 0 synthetic demo.",
   robots: { index: false, follow: false },
 };
 

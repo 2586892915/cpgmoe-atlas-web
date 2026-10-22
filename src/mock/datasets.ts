@@ -4,7 +4,7 @@ const demoProvenance = (collection: string) => [
   { label: "Source", value: "Synthetic demo — no primary files attached" },
   { label: "Collection", value: collection },
   { label: "Audit state", value: "Not audited; illustrative record only" },
-  { label: "Prediction state", value: "Not run — no Full-S3 forward pass" },
+  { label: "Prediction state", value: "Not run — no CPGMoE forward pass" },
   { label: "License", value: "Demo-only; not redistributable" },
 ];
 
@@ -31,7 +31,7 @@ export const DEMO_DATASETS: DatasetDetail[] = [
     usage_note:
       "Synthetic record for interface testing only. It does not describe a real cohort and must not be cited.",
     model_applicability: [
-      "Human scRNA input compatible with the planned Full-S3 adapter.",
+      "Human scRNA input compatible with the planned CPGMoE adapter.",
       "Tumour epithelial and immune compartments both represented in the demo panel.",
     ],
     limitations: [

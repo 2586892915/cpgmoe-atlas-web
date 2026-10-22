@@ -1,7 +1,7 @@
 # LIMITATIONS
 
 1. **没有真实数据。** 所有数据集、细胞、QC、CpG 坐标和甲基化值都是合成的。没有读取、清洗、下载或重新发布真实人类 scRNA 文件。
-2. **没有模型输出。** Full-S3 未加载、未运行。preview API 的 `checkpoint_loaded` 恒为 `false`。
+2. **没有模型输出。** CPGMoE 未加载、未运行。preview API 的 `checkpoint_loaded` 恒为 `false`。
 3. **只有 panel 目标空间。** 模型面向指定 Illumina 450K panel CpG；不是 genome-wide 测量，不宣称 unseen CpG 或全基因组优越性。
 4. **bulk → single-cell 域迁移未验证。** 训练数据为 bulk multi-omics；单细胞预测的可迁移性仍需独立评估。
 5. **没有统计推断。** 不产生 p-values、FDR、DMR 或因果结论；Compare 页只展示 Δ 的布局与聚合口径。

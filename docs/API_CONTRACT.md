@@ -125,7 +125,7 @@ Base path：`/api/v1`
 
 ### `GET /models`
 
-返回 Full-S3 CPGMoE 的 metadata；`checkpoint_hash: null`，`release_status: "research_preview"`，`prediction_semantics: "predicted_beta"`。
+返回 CPGMoE 的 metadata；`checkpoint_hash: null`，`release_status: "research_preview"`，`prediction_semantics: "predicted_beta"`。
 
 ### `GET /schema`
 
@@ -163,7 +163,7 @@ Base path：`/api/v1`
 {
   "data_mode": "synthetic_demo",
   "is_synthetic_demo": true,
-  "model_id": "Full-S3 CPGMoE (demo specification)",
+  "model_id": "CPGMoE (demo specification)",
   "checkpoint_loaded": false,
   "provenance_id": "DEMO_PROV_DEMO_LUNG_ADENO_01",
   "predictions": [

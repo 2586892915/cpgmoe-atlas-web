@@ -2,7 +2,7 @@
 
 一个可本地运行、可交互的学术数据门户原型，用于探索 **predicted**、panel-based、single-cell DNA methylation。首页采用 Guomics 风格的深色粒子入口，但主体是两条姐妹染色单体组成的可交互染色体，向内页过渡为浅色科研数据门户。所有页面、图表和 API 当前都只使用 **合成演示数据**。
 
-> 重要边界：本仓库不读取真实人类 scRNA 文件，不运行 Full-S3 推理，不生成甲基化图谱，不提供生产下载。所有 `predicted_beta` 都是 `is_synthetic_demo: true` 的界面契约演示值。
+> 重要边界：本仓库不读取真实人类 scRNA 文件，不运行 CPGMoE 推理，不生成甲基化图谱，不提供生产下载。所有 `predicted_beta` 都是 `is_synthetic_demo: true` 的界面契约演示值。
 
 ## 快速开始
 
@@ -75,7 +75,7 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | GET | `/api/v1/datasets/{id}` | 数据集详情；未知 ID 返回 404 |
 | GET | `/api/v1/cpgs?query=&assembly=GRCh38` | gene / probe / region 查询 |
 | GET | `/api/v1/groups` | 按 dataset/tissue/cell_type 聚合的合成组均值 |
-| GET | `/api/v1/models` | Full-S3 metadata；`checkpoint_hash` 为 `null` |
+| GET | `/api/v1/models` | CPGMoE metadata；`checkpoint_hash` 为 `null` |
 | GET | `/api/v1/schema` | 字段字典与坐标约定 |
 | POST | `/api/v1/preview/predictions` | 合成预测预览；`checkpoint_loaded: false` |
 | POST | `/api/v1/preview/compare` | 合成 Δ 预览；`statistical_tests: "unavailable_in_demo"` |
@@ -141,7 +141,7 @@ screenshots/                 # 1440 / 1024 / 390 截图
 ## 明确不可用的功能
 
 - 真实数据浏览、真实细胞计数、真实 QC、真实 license 判定。
-- Full-S3 推理、checkpoint 加载、embedding 生成。
+- CPGMoE 推理、checkpoint 加载、embedding 生成。
 - 下载生产 TSV/Parquet、批量 cell×CpG 矩阵。
 - p-values、FDR、DMR 调用、临床或因果解释。
 - 账号、上传、GPU 触发、生产数据库。

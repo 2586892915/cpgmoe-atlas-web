@@ -16,22 +16,22 @@ const ENTRIES = [
   {
     href: "/atlas",
     title: "Cell Atlas",
-    description: "Synthetic embedding, cell selection, and linked predicted methylation.",
+    description: "Embedding, cell selection, linked predicted methylation.",
   },
   {
     href: "/browser",
     title: "Gene & CpG Browser",
-    description: "Resolve a gene, probe ID, or GRCh38 interval to panel records.",
+    description: "Resolve a gene, probe, or GRCh38 interval.",
   },
   {
     href: "/compare",
     title: "Compare Groups",
-    description: "Two-group Δ predicted methylation layout with no inferential claims.",
+    description: "Two-group Δ predicted methylation.",
   },
   {
     href: "/downloads",
     title: "Downloads & API",
-    description: "Field dictionary, API contract, and the planned data products.",
+    description: "Field dictionary, API contract, data products.",
   },
 ];
 
@@ -39,26 +39,26 @@ const METRICS = [
   {
     value: "450K",
     label: "panel CpG target space",
-    note: "A defined Illumina 450K panel, not a genome-wide claim.",
+    note: "Defined Illumina 450K panel.",
     tone: "primary" as const,
   },
   {
     value: "12",
     label: "synthetic demo datasets",
-    note: "UI fixtures only. They are not audited human cohorts.",
+    note: "UI fixtures, not audited cohorts.",
     tone: "primary" as const,
   },
   {
     value: "—",
     label: "audited human cells",
-    note: "Withheld until the scRNA audit completes. No 100M+ claim.",
+    note: "Withheld pending audit.",
     tone: "warm" as const,
   },
 ];
 
 const RELEASE_STATE = [
   { label: "Human scRNA audit", value: "In progress", tone: "warm" as const },
-  { label: "Full-S3 checkpoint", value: "Not loaded", tone: "neutral" as const },
+  { label: "CPGMoE checkpoint", value: "Not loaded", tone: "neutral" as const },
   { label: "Production predictions", value: "Unavailable", tone: "neutral" as const },
   { label: "Download products", value: "Disabled", tone: "neutral" as const },
 ];
@@ -77,22 +77,10 @@ export default function HomePage() {
                 A prediction-first atlas for single-cell methylation.
               </h2>
               <p className="mt-5 max-w-xl text-[14px] leading-relaxed text-ink-soft sm:text-[15px]">
-                Full-S3 CPGMoE infers panel-based DNA methylation from observed
-                RNA expression. This portal keeps the prediction, the evidence,
-                and the audit trail separate, so a value is never mistaken for a
-                measurement.
+                CPGMoE infers panel-based DNA methylation from RNA expression.
               </p>
 
               <GlobalSearch />
-
-              <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-ink-faint">
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1 w-1 rounded-full bg-warm" aria-hidden="true" />
-                  Synthetic demo only
-                </span>
-                <span>GRCh38 / hg38</span>
-                <span>Research-use prediction</span>
-              </div>
             </div>
 
             <div className="lg:pt-8">
@@ -134,9 +122,6 @@ export default function HomePage() {
         <div className="shell">
           <div className="flex flex-col gap-2 border-b border-[#E3EBF7] py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="micro-label">Resource scope</p>
-            <p className="text-[10px] text-ink-faint">
-              Counts are withheld until the audit completes
-            </p>
           </div>
           <div className="grid sm:grid-cols-3 sm:divide-x sm:divide-[#E3EBF7]">
             {METRICS.map((metric) => (
@@ -165,8 +150,7 @@ export default function HomePage() {
               <DemoValue label="Predicted cells" compact />
             </div>
             <p className="mt-2 text-[10px] text-ink-faint">
-              A dash means “not established”, not zero. File-level records are
-              not independent cells.
+              Dash = not established, not zero.
             </p>
           </div>
         </div>
@@ -179,11 +163,6 @@ export default function HomePage() {
             <h2 className="mt-2 font-serif text-[32px] leading-tight text-[#0B2A6F] sm:text-[40px]">
               Featured datasets
             </h2>
-            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-ink-soft">
-              A preview of the synthetic catalogue. Every ID begins with{" "}
-              <span className="mono">DEMO_</span>; every cell count is an
-              illustrative placeholder.
-            </p>
           </div>
           <Link className="btn btn-secondary shrink-0" href="/datasets">
             All 12 datasets
@@ -231,7 +210,7 @@ export default function HomePage() {
           ))}
         </div>
         <p className="mt-2 text-[10px] text-ink-faint">
-          * Illustrative placeholder. Not an audited or predicted cell count.
+          * Illustrative placeholder, not an audited or predicted count.
         </p>
       </section>
 
@@ -243,10 +222,6 @@ export default function HomePage() {
               <h2 className="mt-2 font-serif text-[32px] leading-tight text-[#0B2A6F] sm:text-[40px]">
                 A working interface, not a mockup.
               </h2>
-              <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-ink-soft">
-                These previews open into the real synthetic controls: filters,
-                cell selection, CpG lookup, and group comparison.
-              </p>
             </div>
             <Link className="btn btn-secondary shrink-0" href="/atlas">
               Open Cell Atlas
@@ -268,10 +243,9 @@ export default function HomePage() {
                 Prediction, not measurement.
               </h2>
               <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-ink-soft">
-                Full-S3 CPGMoE is trained on bulk multi-omics data and predicts
-                methylation for a specified Illumina 450K panel CpG space. The
-                single-cell layer is an inference target, not an experimentally
-                measured methylation profile.
+                CPGMoE predicts methylation over a defined 450K panel CpG
+                space. Single-cell use is an inference target, not a measured
+                profile.
               </p>
               <div className="mt-5 flex items-start gap-2 border border-warm/25 bg-warm-wash px-3 py-2 text-[12px] text-warm">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
@@ -281,7 +255,7 @@ export default function HomePage() {
                 href="/methods"
                 className="link-quiet mt-5 inline-flex items-center gap-1 text-[12px]"
               >
-                Read the methods and evaluation boundaries
+                Read methods
                 <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </div>
@@ -311,7 +285,7 @@ export default function HomePage() {
 
               <dl className="mt-6 grid grid-cols-2 gap-px border border-line bg-line text-[11px]">
                 {[
-                  ["Model family", "Full-S3 CPGMoE"],
+                  ["Model family", "CPGMoE"],
                   ["Training domain", "TCGA bulk multi-omics"],
                   ["Target space", "450K panel CpGs"],
                   ["Checkpoint", "Not loaded"],
@@ -334,10 +308,6 @@ export default function HomePage() {
           <h2 className="mt-3 font-serif text-[38px] leading-tight text-[#F2F6FF] sm:text-[48px]">
             Enter the atlas.
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-[13px] leading-relaxed text-[#B9C8F5]">
-            Explore the working demo, or read the evidence boundaries first.
-            Nothing here is a production prediction or a measured scDNAm value.
-          </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link
               href="/atlas"
@@ -356,7 +326,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="mt-6 text-[10px] text-[#5F7085]">
-            Synthetic visualization · research preview · no experimental data
+            Synthetic visualization · no experimental data
           </p>
         </div>
       </section>

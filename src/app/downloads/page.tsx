@@ -66,7 +66,7 @@ export default function DownloadsPage() {
           </h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
             Download products are intentionally disabled until audited data and
-            Full-S3 predictions exist. The API contract and field dictionary are
+            CPGMoE predictions exist. The API contract and field dictionary are
             available now for integration work.
           </p>
         </div>

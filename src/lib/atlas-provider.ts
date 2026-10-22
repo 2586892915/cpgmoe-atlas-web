@@ -149,7 +149,7 @@ export class SyntheticAtlasProvider implements AtlasDataProvider {
         predicted_cells: null,
       },
       model: {
-        model_id: "Full-S3 CPGMoE",
+        model_id: "CPGMoE",
         checkpoint_hash: null,
         prediction_semantics: "predicted_beta",
       },
@@ -378,7 +378,7 @@ export class SyntheticAtlasProvider implements AtlasDataProvider {
 
     const predictions = selectedCells.flatMap((cell) =>
       cpgs.map((cpg) => ({
-        model_id: "Full-S3 CPGMoE (demo specification)",
+        model_id: "CPGMoE (demo specification)",
         dataset_id: dataset.dataset_id,
         cell_id: cell.cell_id,
         cpg_id: cpg.cpg_id,
@@ -394,7 +394,7 @@ export class SyntheticAtlasProvider implements AtlasDataProvider {
     return PredictionPreviewResponseSchema.parse({
       data_mode: DATA_MODE,
       is_synthetic_demo: true,
-      model_id: "Full-S3 CPGMoE (demo specification)",
+      model_id: "CPGMoE (demo specification)",
       checkpoint_loaded: false,
       provenance_id: `DEMO_PROV_${dataset.dataset_id}`,
       predictions,
@@ -454,8 +454,8 @@ export class SyntheticAtlasProvider implements AtlasDataProvider {
       generated_at: now(),
       items: [
         {
-          model_id: "full-s3-cpgmoe",
-          display_name: "Full-S3 CPGMoE",
+          model_id: "cpgmoe",
+          display_name: "CPGMoE",
           architecture: "Bulk multi-omics encoder with CpG-specific prediction heads",
           training_data: "TCGA bulk multi-omics (per project brief)",
           target_space: "Illumina 450K panel CpGs",
@@ -529,7 +529,7 @@ export class SyntheticAtlasProvider implements AtlasDataProvider {
           name: "predicted_beta",
           type: "number [0,1]",
           description:
-            "Predicted methylation beta from Full-S3 CPGMoE. Never a measured scDNAm value.",
+            "Predicted methylation beta from CPGMoE. Never a measured scDNAm value.",
           nullable: false,
         },
         {

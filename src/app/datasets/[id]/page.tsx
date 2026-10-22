@@ -217,7 +217,7 @@ export default async function DatasetDetailPage({ params }: PageProps) {
                     ["Indexed", "File inventory and metadata registered", dataset.stages.indexed],
                     ["RNA-QC passed", "Demonstration QC threshold cleared", dataset.stages.rna_qc_passed],
                     ["Encoded", "A latent representation would exist", dataset.stages.encoded],
-                    ["Predicted", "Full-S3 output would be available", dataset.stages.predicted],
+                    ["Predicted", "CPGMoE output would be available", dataset.stages.predicted],
                     ["Excluded", "Blocked by licence or eligibility", dataset.stages.excluded],
                   ].map(([label, meaning, value]) => (
                     <tr key={String(label)}>

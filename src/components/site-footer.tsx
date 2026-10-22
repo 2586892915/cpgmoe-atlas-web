@@ -8,12 +8,12 @@ export function SiteFooter() {
         <div>
           <Logo />
           <p className="mt-3 max-w-sm text-[13px] leading-relaxed text-ink-soft">
-            A searchable atlas of predicted, panel-based single-cell DNA
-            methylation inferred from RNA expression by Full-S3 CPGMoE.
+            Predicted, panel-based single-cell methylation inferred from RNA
+            expression by CPGMoE.
           </p>
           <p className="mt-3 max-w-sm text-[12px] text-ink-faint">
-            Research-use prediction; not measured single-cell DNA methylation.
-            No production predictions are available in this Phase 0 prototype.
+            Research-use prediction, not measured single-cell methylation. No
+            production predictions in this Phase 0 prototype.
           </p>
         </div>
         <div>
@@ -39,8 +39,8 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-line">
         <div className="shell flex flex-col gap-1 py-4 text-[11px] text-ink-faint sm:flex-row sm:items-center sm:justify-between">
-          <span>CPGMoE Atlas · Phase 0 website foundation</span>
-          <span>Synthetic demo data only · GRCh38 / hg38 · Research use</span>
+          <span>CPGMoE Atlas · Phase 0</span>
+          <span>Synthetic demo data only · GRCh38 · Research use</span>
         </div>
       </div>
     </footer>
