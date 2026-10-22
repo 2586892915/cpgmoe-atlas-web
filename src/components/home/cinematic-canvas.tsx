@@ -213,185 +213,113 @@ function chromatidRadius(t: number, thickness: number): number {
   return (0.035 + 0.205 * taper) * waist * thickness;
 }
 
-// Deterministic variable-width band table, shared by both sister chromatids so
-// the pair carries the same G-band style pattern.
-const BAND_TABLE = (() => {
-  const table: { start: number; level: number }[] = [];
-  let cursor = 0;
-  let seed = 0.37;
-  const next = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-  while (cursor < 1) {
-    table.push({ start: cursor, level: next() > 0.5 ? 1 : 0.42 });
-    cursor += 0.006 + next() * 0.02;
-  }
-  return table;
-})();
+// The chromatid body is drawn as a braid of glowing strands rather than a solid
+// volume, so the structure stays crisp and reads as light instead of tissue.
+const STRAND_TWIST = Math.PI * 3.6;
 
-function bandLevel(t: number): number {
-  let low = 0;
-  let high = BAND_TABLE.length - 1;
-  let found = 0;
-  while (low <= high) {
-    const mid = (low + high) >> 1;
-    if (BAND_TABLE[mid].start <= t) {
-      found = mid;
-      low = mid + 1;
-    } else {
-      high = mid - 1;
-    }
-  }
-  return BAND_TABLE[found].level;
-}
-
-function telomereCap(t: number): number {
-  const edge = 0.075;
-  const distance = Math.min(t, 1 - t) / edge;
-  return Math.max(0, 1 - distance);
-}
-
-function buildChromatidCloud(
+function buildStrandBundle(
   curve: THREE.CatmullRomCurve3,
-  count: number,
-  thickness: number,
-): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
-  const frames = curve.computeFrenetFrames(180, false);
-  const positions: number[] = [];
-  const randoms: number[] = [];
-  const glows: number[] = [];
-  const bands: number[] = [];
-  const caps: number[] = [];
+  isMobile: boolean,
+  phaseOffset: number,
+): THREE.Group {
+  const group = new THREE.Group();
+  const strands = isMobile ? 9 : 15;
+  const segments = isMobile ? 150 : 260;
+  const tubeRadius = isMobile ? 0.013 : 0.0105;
+  const frames = curve.computeFrenetFrames(segments, false);
   const point = new THREE.Vector3();
-  const direction = new THREE.Vector3();
 
-  let attempts = 0;
-  while (randoms.length < count && attempts < count * 4) {
-    attempts += 1;
-    const t = Math.random();
-    const band = bandLevel(t);
-    if (band < 0.6 && Math.random() < 0.2) continue;
-    const localRadius = chromatidRadius(t, thickness);
-    const waist = Math.exp(-Math.pow((t - CENTROMERE_T) / 0.075, 2));
-    const volumeKeep = Math.max(0.35, localRadius / (0.24 * thickness));
-    if (Math.random() > volumeKeep * (1 - 0.62 * waist)) continue;
-    curve.getPointAt(t, point);
-    const frameIndex = Math.min(179, Math.floor(t * 180));
-    const radius = localRadius * Math.sqrt(0.08 + 0.92 * Math.random());
-    const angle = Math.random() * Math.PI * 2;
-    direction
-      .copy(frames.normals[frameIndex])
-      .multiplyScalar(Math.cos(angle))
-      .addScaledVector(frames.binormals[frameIndex], Math.sin(angle) * 0.86)
-      .normalize();
-    point.addScaledVector(direction, radius);
-    positions.push(point.x, point.y, point.z);
-    randoms.push(Math.random());
-    glows.push(Math.exp(-Math.pow((t - CENTROMERE_T) / 0.06, 2)));
-    bands.push(band);
-    caps.push(telomereCap(t));
+  for (let i = 0; i < strands; i += 1) {
+    const phase = phaseOffset + (i / strands) * Math.PI * 2;
+    const ring = 0.45 + 0.55 * ((i % 3) / 2);
+    const points: THREE.Vector3[] = [];
+    for (let s = 0; s <= segments; s += 1) {
+      const t = s / segments;
+      const radius = chromatidRadius(t, 1) * ring;
+      const angle = phase + t * STRAND_TWIST;
+      curve.getPointAt(t, point);
+      points.push(
+        point
+          .clone()
+          .addScaledVector(frames.normals[s], Math.cos(angle) * radius)
+          .addScaledVector(frames.binormals[s], Math.sin(angle) * radius),
+      );
+    }
+    const strandCurve = new THREE.CatmullRomCurve3(
+      points,
+      false,
+      "catmullrom",
+      0.5,
+    );
+    const geometry = new THREE.TubeGeometry(
+      strandCurve,
+      segments,
+      tubeRadius,
+      6,
+      false,
+    );
+
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector3(9999, 9999, 9999) },
+        uCore: { value: new THREE.Color(i % 4 === 0 ? "#EAF9FF" : "#6FE0FF") },
+        uEdge: { value: new THREE.Color("#1E5BFF") },
+        uSeed: { value: i * 1.7 + phaseOffset },
+      },
+      vertexShader: `
+        uniform float uTime;
+        uniform vec3 uMouse;
+        uniform float uSeed;
+        varying vec2 vUv;
+        varying float vFlow;
+        void main() {
+          vUv = uv;
+          vec3 pos = position;
+          vec4 world = modelMatrix * vec4(pos, 1.0);
+          float distanceToMouse = distance(world.xyz, uMouse);
+          if (distanceToMouse < 2.4) {
+            vec3 repulse = normalize(world.xyz - uMouse);
+            float force = pow(1.0 - distanceToMouse / 2.4, 2.0);
+            pos += repulse * force * 0.4;
+          }
+          vFlow = uv.x * 26.0 - uTime * 1.5 + uSeed;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uCore;
+        uniform vec3 uEdge;
+        varying vec2 vUv;
+        varying float vFlow;
+        void main() {
+          float pulse = 0.5 + 0.5 * sin(vFlow);
+          float head = smoothstep(0.75, 1.0, sin(vFlow - 0.6));
+          vec3 color =
+            mix(uEdge, uCore, 0.3 + 0.7 * pulse) + vec3(0.7) * head;
+          float fade =
+            smoothstep(0.0, 0.05, vUv.x) * smoothstep(1.0, 0.95, vUv.x);
+          gl_FragColor = vec4(
+            color * (1.05 + 0.6 * pulse),
+            (0.34 + 0.3 * pulse) * fade
+          );
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    group.add(new THREE.Mesh(geometry, material));
   }
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(Float32Array.from(positions), 3),
-  );
-  geometry.setAttribute(
-    "aRandom",
-    new THREE.BufferAttribute(Float32Array.from(randoms), 1),
-  );
-  geometry.setAttribute(
-    "aGlow",
-    new THREE.BufferAttribute(Float32Array.from(glows), 1),
-  );
-  geometry.setAttribute(
-    "aBand",
-    new THREE.BufferAttribute(Float32Array.from(bands), 1),
-  );
-  geometry.setAttribute(
-    "aCap",
-    new THREE.BufferAttribute(Float32Array.from(caps), 1),
-  );
-
-  const material = new THREE.ShaderMaterial({
-    uniforms: {
-      uTime: { value: 0 },
-      uMouse: { value: new THREE.Vector3(9999, 9999, 9999) },
-      uDeep: { value: new THREE.Color("#1E32D6") },
-      uPale: { value: new THREE.Color("#9FB8FF") },
-      uWarm: { value: new THREE.Color("#FF9FCE") },
-      uGold: { value: new THREE.Color("#D9A45B") },
-      uBand: { value: new THREE.Color("#8FD9FF") },
-      uCap: { value: new THREE.Color("#CFF3FF") },
-    },
-    vertexShader: `
-      uniform float uTime;
-      uniform vec3 uMouse;
-      attribute float aRandom;
-      attribute float aGlow;
-      attribute float aBand;
-      attribute float aCap;
-      varying float vAlpha;
-      varying vec3 vColor;
-      ${SHADER_UTILS}
-      uniform vec3 uDeep;
-      uniform vec3 uPale;
-      uniform vec3 uWarm;
-      uniform vec3 uGold;
-      uniform vec3 uBand;
-      uniform vec3 uCap;
-      void main() {
-        vec3 pos = position;
-        float wave = snoise(pos * 0.75 + uTime * 0.22);
-        pos += normalize(pos) * wave * 0.018;
-        pos += curlNoise(pos * 1.2 + uTime * 0.1) * 0.016;
-        float distanceToMouse = distance(pos, uMouse);
-        if (distanceToMouse < 2.6) {
-          vec3 repulse = normalize(pos - uMouse);
-          float force = pow(1.0 - distanceToMouse / 2.6, 2.0);
-          pos += repulse * force * 0.8;
-        }
-        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-        gl_Position = projectionMatrix * mvPosition;
-         gl_PointSize = (2.2 * aRandom + 0.4) * (11.0 / -mvPosition.z);
-        float tint = 0.5 + 0.5 * snoise(position * 0.6 + uTime * 0.08);
-         float shade = clamp(0.45 * tint + 0.55 * aBand, 0.0, 1.0);
-         vColor = mix(uDeep, uBand, shade);
-         vColor = mix(vColor, uCap, aCap * 0.35);
-         vColor = mix(vColor, mix(uWarm, uGold, aRandom), aGlow * 0.3);
-         vColor = mix(vColor, uDeep * 0.62, aGlow * 0.62);
-        float camDist = length(mvPosition.xyz);
-        float depthFade = smoothstep(13.0, 6.0, camDist);
-        vAlpha =
-          (0.22 + 0.22 * aRandom) *
-          (0.62 + 0.5 * aBand) *
-          (1.0 - 0.68 * aGlow) *
-          (0.5 + 0.5 * depthFade);
-      }
-    `,
-    fragmentShader: `
-      varying float vAlpha;
-      varying vec3 vColor;
-      void main() {
-        float distanceToCenter = length(gl_PointCoord - 0.5);
-        if (distanceToCenter > 0.5) discard;
-        float alpha = (1.0 - smoothstep(0.16, 0.5, distanceToCenter)) * vAlpha;
-        gl_FragColor = vec4(vColor, alpha);
-      }
-    `,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-
-  return new THREE.Points(geometry, material);
+  return group;
 }
 
-function makeWarmPoints(
+function makeGlowPoints(
   positions: THREE.Vector3[],
   size: number,
+  innerColor: string,
+  outerColor: string,
 ): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
   const array = new Float32Array(positions.length * 3);
   const randoms = new Float32Array(positions.length);
@@ -408,14 +336,14 @@ function makeWarmPoints(
     uniforms: {
       uTime: { value: 0 },
       uMouse: { value: new THREE.Vector3(9999, 9999, 9999) },
-      uWarm: { value: new THREE.Color("#FFB6D5") },
-      uGold: { value: new THREE.Color("#D9A45B") },
+      uInner: { value: new THREE.Color(innerColor) },
+      uOuter: { value: new THREE.Color(outerColor) },
     },
     vertexShader: `
       uniform float uTime;
       uniform vec3 uMouse;
-      uniform vec3 uWarm;
-      uniform vec3 uGold;
+      uniform vec3 uInner;
+      uniform vec3 uOuter;
       attribute float aRandom;
       varying float vAlpha;
       varying vec3 vColor;
@@ -423,16 +351,17 @@ function makeWarmPoints(
       void main() {
         vec3 pos = position;
         pos += curlNoise(pos * 2.0 + uTime * 0.2) * 0.02;
-        float distanceToMouse = distance(pos, uMouse);
+        vec4 world = modelMatrix * vec4(pos, 1.0);
+        float distanceToMouse = distance(world.xyz, uMouse);
         if (distanceToMouse < 2.0) {
-          vec3 repulse = normalize(pos - uMouse);
+          vec3 repulse = normalize(world.xyz - uMouse);
           float force = pow(1.0 - distanceToMouse / 2.0, 2.0);
           pos += repulse * force * 0.5;
         }
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         gl_PointSize = ${size.toFixed(1)} * (0.7 + 0.6 * aRandom) * (10.0 / -mvPosition.z);
-        vColor = mix(uGold, uWarm, aRandom);
+        vColor = mix(uOuter, uInner, aRandom);
         float camDist = length(mvPosition.xyz);
         float depthFade = smoothstep(13.0, 6.0, camDist);
         vAlpha = (0.34 + 0.28 * aRandom) * (0.5 + 0.5 * depthFade);
@@ -473,7 +402,7 @@ function buildCore(curves: {
     point.z += (Math.random() - 0.5) * 0.045;
     positions.push(point);
   }
-  return makeWarmPoints(positions, 1.8);
+  return makeGlowPoints(positions, 1.8, "#FFD9EC", "#D9A45B");
 }
 
 function buildBridge(
@@ -494,7 +423,7 @@ function buildBridge(
     point.z += (Math.random() - 0.5) * 0.07;
     positions.push(point);
   }
-  return makeWarmPoints(positions, 2.2);
+  return makeGlowPoints(positions, 2.2, "#FFE6F2", "#C98A3C");
 }
 
 function buildMembraneGeometry(
@@ -507,7 +436,6 @@ function buildMembraneGeometry(
   const positions: number[] = [];
   const normals: number[] = [];
   const uvs: number[] = [];
-  const bands: number[] = [];
   const indices: number[] = [];
   const point = new THREE.Vector3();
   const normal = new THREE.Vector3();
@@ -515,7 +443,6 @@ function buildMembraneGeometry(
     const t = i / tubular;
     curve.getPointAt(t, point);
     const radius = chromatidRadius(t, thickness) * 1.12 + 0.016;
-    const level = bandLevel(t);
     for (let j = 0; j <= radial; j += 1) {
       const angle = (j / radial) * Math.PI * 2;
       normal
@@ -530,7 +457,6 @@ function buildMembraneGeometry(
       );
       normals.push(normal.x, normal.y, normal.z);
       uvs.push(t, j / radial);
-      bands.push(level);
     }
   }
   for (let i = 0; i < tubular; i += 1) {
@@ -547,12 +473,11 @@ function buildMembraneGeometry(
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-  geometry.setAttribute("band", new THREE.Float32BufferAttribute(bands, 1));
   geometry.computeBoundingSphere();
   return geometry;
 }
 
-function makeMembrane(
+function makeGlowShell(
   curve: THREE.CatmullRomCurve3,
   thickness: number,
 ): THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial> {
@@ -560,16 +485,14 @@ function makeMembrane(
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
+      uColor: { value: new THREE.Color("#2E6BE6") },
     },
     vertexShader: `
       uniform float uTime;
-      attribute float band;
       varying vec3 vNormal;
       varying vec3 vViewPosition;
-      varying float vBand;
       ${SHADER_UTILS}
       void main() {
-        vBand = band;
         vec3 pos = position;
         pos += normal * snoise(pos * 1.1 + uTime * 0.18) * 0.018;
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
@@ -579,16 +502,13 @@ function makeMembrane(
       }
     `,
     fragmentShader: `
+      uniform vec3 uColor;
       varying vec3 vNormal;
       varying vec3 vViewPosition;
-      varying float vBand;
       void main() {
         float rim = 1.0 - clamp(dot(normalize(vViewPosition), normalize(vNormal)), 0.0, 1.0);
-        rim = pow(rim, 6.0);
-        vec3 dark = vec3(0.11, 0.20, 0.66);
-        vec3 light = vec3(0.45, 0.75, 1.0);
-        vec3 bandColor = mix(dark, light, vBand);
-        gl_FragColor = vec4(bandColor, rim * 0.12 + 0.015 + vBand * 0.02);
+        rim = pow(rim, 2.6);
+        gl_FragColor = vec4(uColor, rim * 0.07 + 0.008);
       }
     `,
     transparent: true,
@@ -599,78 +519,30 @@ function makeMembrane(
   return new THREE.Mesh(geometry, material);
 }
 
-function makeHelixCurve(
-  base: THREE.CatmullRomCurve3,
-  phase: number,
-  segments: number,
-): THREE.CatmullRomCurve3 {
-  const frames = base.computeFrenetFrames(segments, false);
-  const points: THREE.Vector3[] = [];
-  for (let i = 0; i <= segments; i += 1) {
-    const t = i / segments;
-    const point = base.getPointAt(t);
-    const angle = t * Math.PI * 18 + phase;
-    const offset = new THREE.Vector3()
-      .copy(frames.normals[i])
-      .multiplyScalar(Math.cos(angle) * 0.06)
-      .addScaledVector(frames.binormals[i], Math.sin(angle) * 0.06);
-    points.push(point.add(offset));
-  }
-  return new THREE.CatmullRomCurve3(points, false, "catmullrom", 0.5);
-}
-
-function makeFibers(
-  curve: THREE.CatmullRomCurve3,
+function buildTelomereCaps(
+  curves: {
+    left: THREE.CatmullRomCurve3;
+    right: THREE.CatmullRomCurve3;
+  },
   isMobile: boolean,
-): THREE.Group {
-  const group = new THREE.Group();
-  const segments = isMobile ? 180 : 300;
-  const colors = [
-    ["#4FD1C5", "#063A38"],
-    ["#7DD3FC", "#071B4A"],
-  ];
-  [0, Math.PI].forEach((phase, index) => {
-    const geometry = new THREE.TubeGeometry(
-      makeHelixCurve(curve, phase, segments),
-      segments,
-          0.005,
-      5,
-      false,
-    );
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTime: { value: index * 0.5 },
-        uColor1: { value: new THREE.Color(colors[index][0]) },
-        uColor2: { value: new THREE.Color(colors[index][1]) },
-      },
-      vertexShader: `
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform float uTime;
-        uniform vec3 uColor1;
-        uniform vec3 uColor2;
-        varying vec2 vUv;
-        void main() {
-          float flow = vUv.x * 30.0 - uTime * 3.0;
-          float pulse = sin(flow);
-          float brightness = smoothstep(0.2, 0.9, pulse);
-          float head = smoothstep(0.92, 1.0, sin(flow - 0.2));
-          vec3 color = mix(uColor2, uColor1, brightness + head);
-          gl_FragColor = vec4(color * (0.5 + brightness * 0.8), 1.0);
-        }
-      `,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
+): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
+  const positions: THREE.Vector3[] = [];
+  const perTip = isMobile ? 8 : 14;
+  [curves.left, curves.right].forEach((curve) => {
+    [0.02, 0.98].forEach((t) => {
+      const tip = curve.getPointAt(t);
+      for (let i = 0; i < perTip; i += 1) {
+        positions.push(
+          new THREE.Vector3(
+            tip.x + (Math.random() - 0.5) * 0.07,
+            tip.y + (Math.random() - 0.5) * 0.07,
+            tip.z + (Math.random() - 0.5) * 0.07,
+          ),
+        );
+      }
     });
-    group.add(new THREE.Mesh(geometry, material));
   });
-  return group;
+  return makeGlowPoints(positions, 3.4, "#EAFBFF", "#63C8FF");
 }
 
 export function CinematicCanvas() {
@@ -711,35 +583,32 @@ export function CinematicCanvas() {
     composer.addPass(new RenderPass(scene, camera));
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      mobile ? 0.15 : 0.16,
-      0.32,
-      0.7,
+      mobile ? 0.2 : 0.24,
+      0.45,
+      0.5,
     );
     composer.addPass(bloom);
 
     const curves = makeChromatidCurves();
     const chromosome = new THREE.Group();
-    const count = mobile ? 5200 : 12000;
-    const leftCloud = buildChromatidCloud(curves.left, count, 1);
-    const rightCloud = buildChromatidCloud(curves.right, count, 0.96);
-    const leftMembrane = makeMembrane(curves.left, 1);
-    const rightMembrane = makeMembrane(curves.right, 0.96);
-    const leftFibers = makeFibers(curves.left, mobile);
-    const rightFibers = makeFibers(curves.right, mobile);
-    const core = buildCore(curves, mobile ? 110 : 200);
+    const leftStrands = buildStrandBundle(curves.left, mobile, 0);
+    const rightStrands = buildStrandBundle(curves.right, mobile, Math.PI);
+    const leftShell = makeGlowShell(curves.left, 1);
+    const rightShell = makeGlowShell(curves.right, 0.96);
+    const caps = buildTelomereCaps(curves, mobile);
+    const core = buildCore(curves, mobile ? 90 : 160);
     const bridge = buildBridge(curves, mobile ? 18 : 30);
     chromosome.add(
-      leftCloud,
-      rightCloud,
-      leftMembrane,
-      rightMembrane,
-      leftFibers,
-      rightFibers,
+      leftStrands,
+      rightStrands,
+      leftShell,
+      rightShell,
+      caps,
       core,
       bridge,
     );
     chromosome.position.y = -1.1;
-    chromosome.scale.setScalar(0.9);
+    chromosome.scale.setScalar(1);
     scene.add(chromosome);
 
     const halo = new THREE.Sprite(
@@ -895,18 +764,19 @@ export function CinematicCanvas() {
         targetMouse3D.set(9999, 9999, 9999);
       }
 
-      [leftCloud, rightCloud, core, bridge].forEach((points) => {
+      [caps, core, bridge].forEach((points) => {
         points.material.uniforms.uTime.value = time / 2;
         points.material.uniforms.uMouse.value.lerp(targetMouse3D, 0.1);
       });
-      [leftMembrane, rightMembrane].forEach((mesh) => {
+      [leftShell, rightShell].forEach((mesh) => {
         mesh.material.uniforms.uTime.value = time;
       });
-      [leftFibers, rightFibers].forEach((group) => {
-        group.children.forEach((child, index) => {
+      [leftStrands, rightStrands].forEach((group) => {
+        group.children.forEach((child) => {
           const mesh = child as THREE.Mesh;
           if (mesh.material instanceof THREE.ShaderMaterial) {
-            mesh.material.uniforms.uTime.value = time * 0.25 + index * 0.3;
+            mesh.material.uniforms.uTime.value = time;
+            mesh.material.uniforms.uMouse.value.lerp(targetMouse3D, 0.1);
           }
         });
       });
