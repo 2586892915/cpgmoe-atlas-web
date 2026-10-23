@@ -15,13 +15,13 @@ export function DemoBanner() {
         <FlaskConical className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span className="font-semibold">{DATA_MODE_BANNER}</span>
         <span className="hidden text-warm/80 sm:inline">
-          Every value is illustrative. No human data or model output is served.
+          Illustrative values only.
         </span>
         <Link
           href="/methods#data-status"
           className="ml-auto underline decoration-warm/40 underline-offset-2 hover:decoration-warm"
         >
-          What this means
+          Details
         </Link>
       </div>
     </div>

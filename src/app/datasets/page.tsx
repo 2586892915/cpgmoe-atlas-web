@@ -43,14 +43,11 @@ export default function DatasetsPage() {
 
       <div className="mt-4 grid gap-2 text-[12px] leading-relaxed text-ink-faint sm:grid-cols-2">
         <p>
-          No row in this table corresponds to a real study. Dataset identifiers
-          begin with <span className="mono">DEMO_</span>; source is always
-          “Synthetic demo”.
+          <span className="mono">DEMO_</span> records are synthetic; none
+          corresponds to a real study.
         </p>
         <p className="sm:text-right">
-          Pagination uses the same cursor contract as{" "}
-          <span className="mono">GET /api/v1/datasets</span>. The table loads a
-          local mock, not a production database.
+          Local mock, not a production database.
         </p>
       </div>
     </div>
