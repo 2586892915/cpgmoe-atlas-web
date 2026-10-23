@@ -609,48 +609,78 @@ function makeGlowShell(
   return new THREE.Mesh(geometry, material);
 }
 
-function makeNucleusRing(
+function makeParticleRing(
   radius: number,
-  thickness: number,
+  count: number,
   intensity: number,
-): THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial> {
-  const geometry = new THREE.TorusGeometry(radius, thickness, 8, 256);
+): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  const randoms = new Float32Array(count);
+  const hues = new Float32Array(count);
+  for (let i = 0; i < count; i += 1) {
+    const angle =
+      (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.05;
+    const r = radius + (Math.random() - 0.5) * 0.17;
+    positions[i * 3] = Math.cos(angle) * r;
+    positions[i * 3 + 1] = Math.sin(angle) * r;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 0.07;
+    randoms[i] = Math.random();
+    hues[i] = (Math.cos(angle) + 1) * 0.5;
+  }
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("aRandom", new THREE.BufferAttribute(randoms, 1));
+  geometry.setAttribute("aHue", new THREE.BufferAttribute(hues, 1));
+
   const material = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
+      uIntensity: { value: intensity },
       uColorA: { value: new THREE.Color("#4FE3FF") },
       uColorB: { value: new THREE.Color("#A98CFF") },
-      uIntensity: { value: intensity },
     },
     vertexShader: `
-      varying vec2 vUv;
+      uniform float uTime;
+      attribute float aRandom;
+      attribute float aHue;
+      varying float vAlpha;
+      varying vec3 vColor;
+      uniform vec3 uColorA;
+      uniform vec3 uColorB;
       void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec3 pos = position;
+        float phase = aRandom * 6.28318;
+        pos.x += sin(uTime * 0.5 + phase) * 0.012;
+        pos.y += cos(uTime * 0.44 + phase) * 0.012;
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        float twinkle = 0.35 + 0.65 * pow(
+          0.5 + 0.5 * sin(uTime * 1.3 + phase * 2.0),
+          2.0
+        );
+        gl_PointSize = (1.3 + 2.8 * aRandom) * (16.0 / -mvPosition.z);
+        vColor = mix(uColorA, uColorB, aHue);
+        vColor = mix(vColor, vec3(1.0), pow(aRandom, 8.0) * 0.9);
+        vAlpha = (0.3 + 0.55 * twinkle) * (0.4 + 0.6 * aRandom);
       }
     `,
     fragmentShader: `
-      uniform float uTime;
       uniform float uIntensity;
-      uniform vec3 uColorA;
-      uniform vec3 uColorB;
-      varying vec2 vUv;
+      varying float vAlpha;
+      varying vec3 vColor;
       void main() {
-        float angle = vUv.x;
-        float hue = 0.5 + 0.5 * sin(angle * 6.28318 + uTime * 0.5);
-        vec3 color = mix(uColorA, uColorB, hue);
-        float phase = fract(angle - uTime * 0.045);
-        float head = pow(1.0 - phase, 10.0);
-        color += vec3(0.85) * head;
-        float alpha = (0.55 + 0.35 * hue + head * 0.9) * uIntensity;
-        gl_FragColor = vec4(color, alpha);
+        float d = length(gl_PointCoord - 0.5);
+        if (d > 0.5) discard;
+        float falloff = 1.0 - smoothstep(0.0, 0.5, d);
+        float alpha = pow(falloff, 1.5) * vAlpha * uIntensity;
+        gl_FragColor = vec4(vColor * (1.0 + 0.6 * falloff), alpha);
       }
     `,
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
   });
-  return new THREE.Mesh(geometry, material);
+  return new THREE.Points(geometry, material);
 }
 
 function buildTelomereCaps(
@@ -768,15 +798,15 @@ export function CinematicCanvas() {
     chromosome.scale.setScalar(baseScale);
     scene.add(chromosome);
 
-    const ringRadius = mobile ? 2.2 : 3.15;
+    const ringRadius = mobile ? 2.15 : 3.05;
     const nucleus = new THREE.Group();
     nucleus.position.set(0, -1.45, 0);
-    const ringA = makeNucleusRing(ringRadius, mobile ? 0.032 : 0.028, 1);
+    const ringA = makeParticleRing(ringRadius, mobile ? 700 : 1500, 1);
     ringA.rotation.set(0.5, 0, -0.12);
-    const ringB = makeNucleusRing(
+    const ringB = makeParticleRing(
       ringRadius * 0.86,
-      mobile ? 0.016 : 0.012,
-      0.5,
+      mobile ? 320 : 620,
+      0.4,
     );
     ringB.rotation.set(-0.42, 0, 0.48);
     nucleus.add(ringA, ringB);
@@ -952,7 +982,6 @@ export function CinematicCanvas() {
       [ringA, ringB].forEach((ring) => {
         ring.material.uniforms.uTime.value = time;
       });
-      nucleus.rotation.y = time * 0.06;
       [leftShell, rightShell].forEach((mesh) => {
         mesh.material.uniforms.uTime.value = time;
       });
