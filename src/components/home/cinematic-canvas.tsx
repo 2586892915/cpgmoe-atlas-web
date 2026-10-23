@@ -191,15 +191,16 @@ const CENTROMERE_T = 0.44;
 // constriction, splayed apart in depth so the pair reads as a 3D structure.
 function chromatidPath(side: number): THREE.Vector3[] {
   const samples = [
-    0, 0.08, 0.16, 0.24, 0.32, 0.39, CENTROMERE_T, 0.49, 0.56, 0.64, 0.72,
-    0.8, 0.88, 0.94, 1,
+    0, 0.06, 0.12, 0.18, 0.25, 0.32, 0.38, CENTROMERE_T, 0.5, 0.56, 0.63, 0.7,
+    0.78, 0.86, 0.93, 1,
   ];
   return samples.map((u) => {
     const d = u - CENTROMERE_T;
-    const spread = 0.14 + 3.0 * Math.pow(Math.abs(d), 0.95);
-    const bow = Math.sin(Math.abs(d) * Math.PI * 1.7) * 0.03;
+    // Arms leave the centromere almost parallel to the axis and then flare
+    // outward, which is what gives the chromatid pair its bowed shape.
+    const spread = 0.13 + 4.64 * Math.pow(Math.abs(d), 1.45);
     return new THREE.Vector3(
-      side * (spread + bow),
+      side * spread,
       -d * 4.6,
       side * (0.08 + 0.62 * Math.abs(d)) + Math.sin(u * Math.PI * 2) * 0.04,
     );
@@ -608,7 +609,7 @@ export function CinematicCanvas() {
       bridge,
     );
     chromosome.position.y = -1.1;
-    chromosome.scale.setScalar(1);
+    chromosome.scale.setScalar(0.94);
     scene.add(chromosome);
 
     const halo = new THREE.Sprite(
