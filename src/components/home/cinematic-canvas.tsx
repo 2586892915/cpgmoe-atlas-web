@@ -173,6 +173,80 @@ function makeDust(
   return new THREE.Points(geometry, material);
 }
 
+function makeSparkField(
+  count: number,
+): THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial> {
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  const randoms = new Float32Array(count);
+  const hues = new Float32Array(count);
+  for (let i = 0; i < count; i += 1) {
+    const radius = 1.5 + Math.pow(Math.random(), 0.7) * 2.8;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = radius * Math.cos(phi) * 0.95;
+    positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta) * 0.6;
+    randoms[i] = Math.random();
+    hues[i] = Math.random();
+  }
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("aRandom", new THREE.BufferAttribute(randoms, 1));
+  geometry.setAttribute("aHue", new THREE.BufferAttribute(hues, 1));
+
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uMouse: { value: new THREE.Vector3(9999, 9999, 9999) },
+    },
+    vertexShader: `
+      uniform float uTime;
+      uniform vec3 uMouse;
+      attribute float aRandom;
+      attribute float aHue;
+      varying float vAlpha;
+      varying vec3 vColor;
+      void main() {
+        vec3 pos = position;
+        float phase = aRandom * 6.28318;
+        pos.x += sin(uTime * 0.3 + phase) * 0.12;
+        pos.y += cos(uTime * 0.26 + phase) * 0.12;
+        pos.z += sin(uTime * 0.22 + phase * 1.7) * 0.08;
+        vec4 world = modelMatrix * vec4(pos, 1.0);
+        float distanceToMouse = distance(world.xyz, uMouse);
+        if (distanceToMouse < 2.2) {
+          vec3 repulse = normalize(world.xyz - uMouse);
+          float force = pow(1.0 - distanceToMouse / 2.2, 2.0);
+          pos += repulse * force * 0.7;
+        }
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        float twinkle = 0.3 + 0.7 * pow(0.5 + 0.5 * sin(uTime * 1.6 + phase * 2.0), 2.0);
+        gl_PointSize =
+          (1.4 + 3.0 * aRandom) * twinkle * (18.0 / -mvPosition.z);
+        vColor = mix(vec3(0.62, 0.86, 1.0), vec3(0.78, 0.62, 1.0), aHue);
+        vColor = mix(vColor, vec3(1.0), pow(aRandom, 6.0) * 0.85);
+        vAlpha = (0.22 + 0.5 * twinkle) * (0.35 + 0.65 * aRandom);
+      }
+    `,
+    fragmentShader: `
+      varying float vAlpha;
+      varying vec3 vColor;
+      void main() {
+        float d = length(gl_PointCoord - 0.5);
+        if (d > 0.5) discard;
+        float falloff = 1.0 - smoothstep(0.0, 0.5, d);
+        float alpha = pow(falloff, 1.6) * vAlpha;
+        gl_FragColor = vec4(vColor * (1.0 + 0.8 * falloff), alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  return new THREE.Points(geometry, material);
+}
+
 function makeChromatidCurves(): {
   left: THREE.CatmullRomCurve3;
   right: THREE.CatmullRomCurve3;
@@ -218,15 +292,28 @@ function chromatidRadius(t: number, thickness: number): number {
 // volume, so the structure stays crisp and reads as light instead of tissue.
 const STRAND_TWIST = Math.PI * 3.6;
 
+type StrandStyle = {
+  strands: number;
+  twist: number;
+  ringScale: number;
+  core: string;
+  coreHi: string;
+  edge: string;
+  intensity: number;
+};
+
 function buildStrandBundle(
   curve: THREE.CatmullRomCurve3,
   isMobile: boolean,
   phaseOffset: number,
+  style: StrandStyle,
 ): THREE.Group {
   const group = new THREE.Group();
-  const strands = isMobile ? 9 : 15;
+  const strands = isMobile
+    ? Math.max(5, Math.round(style.strands * 0.6))
+    : style.strands;
   const segments = isMobile ? 150 : 260;
-  const tubeRadius = isMobile ? 0.013 : 0.0105;
+  const tubeRadius = (isMobile ? 0.013 : 0.0105) * style.ringScale;
   const frames = curve.computeFrenetFrames(segments, false);
   const point = new THREE.Vector3();
 
@@ -236,8 +323,8 @@ function buildStrandBundle(
     const points: THREE.Vector3[] = [];
     for (let s = 0; s <= segments; s += 1) {
       const t = s / segments;
-      const radius = chromatidRadius(t, 1) * ring;
-      const angle = phase + t * STRAND_TWIST;
+      const radius = chromatidRadius(t, 1) * ring * style.ringScale;
+      const angle = phase + t * style.twist;
       curve.getPointAt(t, point);
       points.push(
         point
@@ -264,8 +351,10 @@ function buildStrandBundle(
       uniforms: {
         uTime: { value: 0 },
         uMouse: { value: new THREE.Vector3(9999, 9999, 9999) },
-        uCore: { value: new THREE.Color(i % 4 === 0 ? "#EAF9FF" : "#6FE0FF") },
-        uEdge: { value: new THREE.Color("#1E5BFF") },
+        uCore: {
+          value: new THREE.Color(i % 4 === 0 ? style.coreHi : style.core),
+        },
+        uEdge: { value: new THREE.Color(style.edge) },
         uSeed: { value: i * 1.7 + phaseOffset },
       },
       vertexShader: `
@@ -301,7 +390,7 @@ function buildStrandBundle(
           float fade =
             smoothstep(0.0, 0.05, vUv.x) * smoothstep(1.0, 0.95, vUv.x);
           gl_FragColor = vec4(
-            color * (1.05 + 0.6 * pulse),
+            color * (1.05 + 0.6 * pulse) * ${style.intensity.toFixed(2)},
             (0.34 + 0.3 * pulse) * fade
           );
         }
@@ -520,6 +609,50 @@ function makeGlowShell(
   return new THREE.Mesh(geometry, material);
 }
 
+function makeNucleusRing(
+  radius: number,
+  thickness: number,
+  intensity: number,
+): THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial> {
+  const geometry = new THREE.TorusGeometry(radius, thickness, 8, 256);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0 },
+      uColorA: { value: new THREE.Color("#4FE3FF") },
+      uColorB: { value: new THREE.Color("#A98CFF") },
+      uIntensity: { value: intensity },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      uniform float uIntensity;
+      uniform vec3 uColorA;
+      uniform vec3 uColorB;
+      varying vec2 vUv;
+      void main() {
+        float angle = vUv.x;
+        float hue = 0.5 + 0.5 * sin(angle * 6.28318 + uTime * 0.5);
+        vec3 color = mix(uColorA, uColorB, hue);
+        float phase = fract(angle - uTime * 0.045);
+        float head = pow(1.0 - phase, 10.0);
+        color += vec3(0.85) * head;
+        float alpha = (0.55 + 0.35 * hue + head * 0.9) * uIntensity;
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  });
+  return new THREE.Mesh(geometry, material);
+}
+
 function buildTelomereCaps(
   curves: {
     left: THREE.CatmullRomCurve3;
@@ -585,15 +718,35 @@ export function CinematicCanvas() {
     const bloom = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
       mobile ? 0.2 : 0.24,
-      0.45,
-      0.5,
+      0.55,
+      0.52,
     );
     composer.addPass(bloom);
 
     const curves = makeChromatidCurves();
     const chromosome = new THREE.Group();
-    const leftStrands = buildStrandBundle(curves.left, mobile, 0);
-    const rightStrands = buildStrandBundle(curves.right, mobile, Math.PI);
+    const coreStyle: StrandStyle = {
+      strands: 15,
+      twist: STRAND_TWIST,
+      ringScale: 1,
+      core: "#6FE0FF",
+      coreHi: "#EAF9FF",
+      edge: "#1E5BFF",
+      intensity: 0.82,
+    };
+    const auraStyle: StrandStyle = {
+      strands: 9,
+      twist: -STRAND_TWIST * 0.55,
+      ringScale: 1.28,
+      core: "#B98CFF",
+      coreHi: "#F0D7FF",
+      edge: "#4A2BFF",
+      intensity: 0.75,
+    };
+    const leftStrands = buildStrandBundle(curves.left, mobile, 0, coreStyle);
+    const rightStrands = buildStrandBundle(curves.right, mobile, Math.PI, coreStyle);
+    const leftAura = buildStrandBundle(curves.left, mobile, 0.9, auraStyle);
+    const rightAura = buildStrandBundle(curves.right, mobile, 2.4, auraStyle);
     const leftShell = makeGlowShell(curves.left, 1);
     const rightShell = makeGlowShell(curves.right, 0.96);
     const caps = buildTelomereCaps(curves, mobile);
@@ -602,32 +755,53 @@ export function CinematicCanvas() {
     chromosome.add(
       leftStrands,
       rightStrands,
+      leftAura,
+      rightAura,
       leftShell,
       rightShell,
       caps,
       core,
       bridge,
     );
-    chromosome.position.y = -1.1;
-    chromosome.scale.setScalar(0.94);
+    const baseScale = mobile ? 0.96 : 1.1;
+    chromosome.position.y = -1;
+    chromosome.scale.setScalar(baseScale);
     scene.add(chromosome);
+
+    const ringRadius = mobile ? 2.2 : 3.15;
+    const nucleus = new THREE.Group();
+    nucleus.position.set(0, -1.45, 0);
+    const ringA = makeNucleusRing(ringRadius, mobile ? 0.032 : 0.028, 1);
+    ringA.rotation.set(0.5, 0, -0.12);
+    const ringB = makeNucleusRing(
+      ringRadius * 0.86,
+      mobile ? 0.016 : 0.012,
+      0.5,
+    );
+    ringB.rotation.set(-0.42, 0, 0.48);
+    nucleus.add(ringA, ringB);
+    scene.add(nucleus);
 
     const halo = new THREE.Sprite(
       new THREE.SpriteMaterial({
         map: makeHaloTexture(),
         color: new THREE.Color("#2F8FA3"),
         transparent: true,
-        opacity: 0.12,
+        opacity: 0.18,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       }),
     );
     halo.position.set(0, -0.8, -3.2);
-    halo.scale.set(8, 8, 1);
+    halo.scale.set(10, 10, 1);
     scene.add(halo);
 
     const dust = makeDust(mobile ? 260 : 520);
     scene.add(dust);
+
+    const sparks = makeSparkField(mobile ? 280 : 640);
+    sparks.position.set(0, -1, 0);
+    scene.add(sparks);
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2(9999, 9999);
@@ -753,7 +927,13 @@ export function CinematicCanvas() {
         progress * 0.55 + Math.sin(time * 0.05) * 0.025 + userRotY;
       chromosome.rotation.x = Math.sin(time * 0.07) * 0.025 + userRotX;
       dust.rotation.y += delta * 0.012;
-      chromosome.position.y = -1.1 + Math.sin(time * 0.2) * 0.015;
+      sparks.rotation.y += delta * 0.02;
+      sparks.material.uniforms.uTime.value = time;
+      sparks.material.uniforms.uMouse.value.lerp(targetMouse3D, 0.1);
+      chromosome.position.y = -1 + Math.sin(time * 0.2) * 0.015;
+      chromosome.scale.setScalar(
+        baseScale * (1 + Math.sin(time * 0.45) * 0.012),
+      );
 
       if (mouse.x !== 9999) {
         raycaster.setFromCamera(mouse, camera);
@@ -769,10 +949,14 @@ export function CinematicCanvas() {
         points.material.uniforms.uTime.value = time / 2;
         points.material.uniforms.uMouse.value.lerp(targetMouse3D, 0.1);
       });
+      [ringA, ringB].forEach((ring) => {
+        ring.material.uniforms.uTime.value = time;
+      });
+      nucleus.rotation.y = time * 0.06;
       [leftShell, rightShell].forEach((mesh) => {
         mesh.material.uniforms.uTime.value = time;
       });
-      [leftStrands, rightStrands].forEach((group) => {
+      [leftStrands, rightStrands, leftAura, rightAura].forEach((group) => {
         group.children.forEach((child) => {
           const mesh = child as THREE.Mesh;
           if (mesh.material instanceof THREE.ShaderMaterial) {
