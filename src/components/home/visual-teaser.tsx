@@ -143,19 +143,16 @@ const TEASERS = [
   {
     href: "/atlas",
     label: "Cell Atlas",
-    description: "Embedding, cell-type colouring, and group methylation.",
     chart: <MiniUmap />,
   },
   {
     href: "/browser",
     label: "Gene & CpG Browser",
-    description: "Search a gene, probe ID, or GRCh38 interval.",
     chart: <MiniTrack />,
   },
   {
     href: "/compare",
     label: "Group Comparison",
-    description: "Δ predicted β layout with no inferential claims.",
     chart: <MiniHeatmap />,
   },
 ];
@@ -177,13 +174,8 @@ export function VisualTeaser() {
               </Badge>
             </span>
           </div>
-          <div className="flex items-start justify-between gap-2 px-4 py-3">
-            <div>
-              <p className="text-[13px] font-semibold text-ink">{teaser.label}</p>
-              <p className="mt-0.5 text-[11px] leading-relaxed text-ink-faint">
-                {teaser.description}
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-2 px-4 py-3">
+            <p className="text-[13px] font-semibold text-ink">{teaser.label}</p>
             <ArrowRight
               className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
               aria-hidden="true"

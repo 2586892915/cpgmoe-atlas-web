@@ -60,14 +60,12 @@ export default function DownloadsPage() {
     <div className="shell py-8">
       <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">Data products</p>
-          <h1 className="mt-1 text-[28px] font-semibold leading-tight text-ink">
+          <h1 className="text-[28px] font-semibold leading-tight text-ink">
             Downloads &amp; API
           </h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-            Download products are intentionally disabled until audited data and
-            CPGMoE predictions exist. The API contract and field dictionary are
-            available now for integration work.
+            Products unlock once audited data and predictions exist. The API
+            contract is available now.
           </p>
         </div>
         <Badge tone="warm" dot>

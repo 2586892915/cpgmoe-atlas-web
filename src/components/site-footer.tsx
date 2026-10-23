@@ -11,10 +11,6 @@ export function SiteFooter() {
             Predicted, panel-based single-cell methylation inferred from RNA
             expression by CPGMoE.
           </p>
-          <p className="mt-3 max-w-sm text-[12px] text-ink-faint">
-            Research-use prediction, not measured single-cell methylation. No
-            production predictions in this Phase 0 prototype.
-          </p>
         </div>
         <div>
           <p className="micro-label">Portal</p>
@@ -33,14 +29,13 @@ export function SiteFooter() {
             <li><Link className="hover:text-primary" href="/methods">Methods &amp; limitations</Link></li>
             <li><Link className="hover:text-primary" href="/about#data-policies">Data policies</Link></li>
             <li><Link className="hover:text-primary" href="/about#citations">Source &amp; citations</Link></li>
-            <li><span className="text-ink-faint">Contact: placeholder for project team</span></li>
           </ul>
         </div>
       </div>
       <div className="border-t border-line">
         <div className="shell flex flex-col gap-1 py-4 text-[11px] text-ink-faint sm:flex-row sm:items-center sm:justify-between">
           <span>CPGMoE Atlas · Phase 0</span>
-          <span>Synthetic demo data only · GRCh38 · Research use</span>
+          <span>Synthetic demo only · Research use</span>
         </div>
       </div>
     </footer>

@@ -27,14 +27,11 @@ export default async function BrowserPage({
     <div className="shell py-8">
       <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">Query</p>
-          <h1 className="mt-1 text-[28px] font-semibold leading-tight text-ink">
+          <h1 className="text-[28px] font-semibold leading-tight text-ink">
             Gene &amp; CpG Browser
           </h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-            Resolve a gene symbol, a CpG probe ID, or a GRCh38 interval to
-            predefined demo panel records. Unknown queries return an explicit
-            empty state.
+            Resolve a gene, CpG probe, or GRCh38 interval.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">

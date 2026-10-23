@@ -12,16 +12,12 @@ export default function AboutPage() {
   return (
     <div className="shell py-8">
       <div className="max-w-3xl">
-        <p className="eyebrow">About</p>
-        <h1 className="mt-1 text-[28px] font-semibold leading-tight text-ink">
+        <h1 className="text-[28px] font-semibold leading-tight text-ink">
           A predicted methylation atlas, not a measurement archive
         </h1>
         <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-          CPGMoE Atlas is a Phase 0 interface prototype for exploring predicted,
-          panel-based single-cell DNA methylation inferred from RNA expression.
-          It exists to lock the data contracts, interaction model, and evidence
-          boundaries before audited human data and an approved CPGMoE
-          checkpoint are connected.
+          A Phase 0 interface prototype for predicted single-cell methylation,
+          built to fix the data contracts before audited data is connected.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge tone="primary" dot>Phase 0 prototype</Badge>

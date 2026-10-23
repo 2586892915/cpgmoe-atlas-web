@@ -1,66 +1,30 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { CinematicHero } from "@/components/home/cinematic-hero";
 import { VisualTeaser } from "@/components/home/visual-teaser";
 import { GlobalSearch } from "@/components/global-search";
 import { Badge, StatusBadge } from "@/components/ui/badge";
-import { DemoValue } from "@/components/ui/demo-value";
 import { MODEL_EVIDENCE_NOTE } from "@/lib/data-mode";
 import { DEMO_DATASETS } from "@/mock/datasets";
 
 const ENTRIES = [
-  {
-    href: "/atlas",
-    title: "Cell Atlas",
-    description: "Embedding, cell selection, linked predicted methylation.",
-  },
-  {
-    href: "/browser",
-    title: "Gene & CpG Browser",
-    description: "Resolve a gene, probe, or GRCh38 interval.",
-  },
-  {
-    href: "/compare",
-    title: "Compare Groups",
-    description: "Two-group Δ predicted methylation.",
-  },
-  {
-    href: "/downloads",
-    title: "Downloads & API",
-    description: "Field dictionary, API contract, data products.",
-  },
+  { href: "/atlas", title: "Cell Atlas" },
+  { href: "/browser", title: "Gene & CpG Browser" },
+  { href: "/compare", title: "Compare Groups" },
+  { href: "/downloads", title: "Downloads & API" },
 ];
 
 const METRICS = [
-  {
-    value: "450K",
-    label: "panel CpG target space",
-    note: "Defined Illumina 450K panel.",
-    tone: "primary" as const,
-  },
-  {
-    value: "12",
-    label: "synthetic demo datasets",
-    note: "UI fixtures, not audited cohorts.",
-    tone: "primary" as const,
-  },
-  {
-    value: "—",
-    label: "audited human cells",
-    note: "Withheld pending audit.",
-    tone: "warm" as const,
-  },
+  { value: "450K", label: "panel CpGs" },
+  { value: "12", label: "demo datasets" },
+  { value: "—", label: "audited cells", tone: "warm" as const },
 ];
 
-const RELEASE_STATE = [
-  { label: "Human scRNA audit", value: "In progress", tone: "warm" as const },
-  { label: "CPGMoE checkpoint", value: "Not loaded", tone: "neutral" as const },
-  { label: "Production predictions", value: "Unavailable", tone: "neutral" as const },
-  { label: "Download products", value: "Disabled", tone: "neutral" as const },
+const MODEL_FACTS = [
+  ["Model", "CPGMoE"],
+  ["Training", "TCGA bulk multi-omics"],
+  ["Target", "450K panel CpGs"],
+  ["Checkpoint", "Not loaded"],
 ];
 
 export default function HomePage() {
@@ -69,45 +33,32 @@ export default function HomePage() {
       <CinematicHero />
 
       <section className="bg-[#F1F5FC]">
-        <div className="shell py-14 sm:py-20">
-          <div className="grid gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16">
+        <div className="shell py-16 sm:py-20">
+          <div className="grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16">
             <div>
-              <p className="eyebrow">The resource</p>
-              <h2 className="mt-3 max-w-2xl font-serif text-[34px] leading-[1.08] text-[#0B2A6F] sm:text-[46px]">
+              <h2 className="max-w-2xl font-serif text-[34px] leading-[1.08] text-[#0B2A6F] sm:text-[46px]">
                 A prediction-first atlas for single-cell methylation.
               </h2>
-              <p className="mt-5 max-w-xl text-[14px] leading-relaxed text-ink-soft sm:text-[15px]">
+              <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-ink-soft sm:text-[15px]">
                 CPGMoE infers panel-based DNA methylation from RNA expression.
               </p>
-
               <GlobalSearch />
             </div>
 
-            <div className="lg:pt-8">
-              <div className="flex items-end justify-between border-b border-[#C9D8F5] pb-3">
-                <p className="micro-label">What is inside</p>
-                <span className="text-[10px] text-ink-faint">04 tools</span>
-              </div>
+            <div>
+              <p className="micro-label border-b border-[#C9D8F5] pb-3">Tools</p>
               <div className="divide-y divide-[#D8E3F3]">
-                {ENTRIES.map((entry, index) => (
+                {ENTRIES.map((entry) => (
                   <Link
                     key={entry.href}
                     href={entry.href}
-                    className="group flex items-start gap-4 py-4"
+                    className="group flex items-center justify-between gap-4 py-4"
                   >
-                    <span className="mt-0.5 w-6 shrink-0 font-mono text-[10px] text-[#7C8CA1]">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="flex-1">
-                      <span className="block text-[15px] font-medium text-ink transition-colors group-hover:text-primary">
-                        {entry.title}
-                      </span>
-                      <span className="mt-1 block max-w-sm text-[12px] leading-relaxed text-ink-faint">
-                        {entry.description}
-                      </span>
+                    <span className="text-[15px] font-medium text-ink transition-colors group-hover:text-primary">
+                      {entry.title}
                     </span>
                     <ArrowRight
-                      className="mt-1 h-4 w-4 shrink-0 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                      className="h-4 w-4 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
                       aria-hidden="true"
                     />
                   </Link>
@@ -119,51 +70,27 @@ export default function HomePage() {
       </section>
 
       <section className="border-y border-[#D8E3F3] bg-white">
-        <div className="shell">
-          <div className="flex flex-col gap-2 border-b border-[#E3EBF7] py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="micro-label">Resource scope</p>
-          </div>
-          <div className="grid sm:grid-cols-3 sm:divide-x sm:divide-[#E3EBF7]">
-            {METRICS.map((metric) => (
-              <div key={metric.label} className="px-0 py-7 sm:px-7 sm:first:pl-0">
-                <p
-                  className={`font-serif text-[48px] leading-none ${
-                    metric.tone === "warm" ? "text-warm" : "text-[#156E86]"
-                  }`}
-                >
-                  {metric.value}
-                </p>
-                <p className="mt-2 text-[13px] font-medium text-ink">
-                  {metric.label}
-                </p>
-                <p className="mt-1 max-w-xs text-[11px] leading-relaxed text-ink-faint">
-                  {metric.note}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-[#E3EBF7] py-5">
-            <div className="panel-inset grid gap-5 px-5 py-4 sm:grid-cols-2 lg:grid-cols-4">
-              <DemoValue label="Indexed cells" compact />
-              <DemoValue label="Eligible cells" compact />
-              <DemoValue label="Encoded cells" compact />
-              <DemoValue label="Predicted cells" compact />
+        <div className="shell grid sm:grid-cols-3 sm:divide-x sm:divide-[#E3EBF7]">
+          {METRICS.map((metric) => (
+            <div key={metric.label} className="py-7 sm:px-7 sm:first:pl-0">
+              <p
+                className={`font-serif text-[46px] leading-none ${
+                  metric.tone === "warm" ? "text-warm" : "text-[#156E86]"
+                }`}
+              >
+                {metric.value}
+              </p>
+              <p className="mt-2 text-[13px] text-ink-soft">{metric.label}</p>
             </div>
-            <p className="mt-2 text-[10px] text-ink-faint">
-              Dash = not established, not zero.
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
       <section className="shell py-14">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow">Catalogue</p>
-            <h2 className="mt-2 font-serif text-[32px] leading-tight text-[#0B2A6F] sm:text-[40px]">
-              Featured datasets
-            </h2>
-          </div>
+          <h2 className="font-serif text-[30px] leading-tight text-[#0B2A6F] sm:text-[38px]">
+            Featured datasets
+          </h2>
           <Link className="btn btn-secondary shrink-0" href="/datasets">
             All 12 datasets
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -210,27 +137,13 @@ export default function HomePage() {
           ))}
         </div>
         <p className="mt-2 text-[10px] text-ink-faint">
-          * Illustrative placeholder, not an audited or predicted count.
+          * Illustrative counts, not audited data.
         </p>
       </section>
 
       <section className="border-y border-[#D8E3F3] bg-[#F7FAFE]">
-        <div className="shell py-14">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="eyebrow">Inside the portal</p>
-              <h2 className="mt-2 font-serif text-[32px] leading-tight text-[#0B2A6F] sm:text-[40px]">
-                A working interface, not a mockup.
-              </h2>
-            </div>
-            <Link className="btn btn-secondary shrink-0" href="/atlas">
-              Open Cell Atlas
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          </div>
-          <div className="mt-6">
-            <VisualTeaser />
-          </div>
+        <div className="shell py-12">
+          <VisualTeaser />
         </div>
       </section>
 
@@ -238,8 +151,7 @@ export default function HomePage() {
         <div className="shell py-14">
           <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16">
             <div>
-              <p className="eyebrow">Model & evidence</p>
-              <h2 className="mt-2 font-serif text-[32px] leading-tight text-[#0B2A6F] sm:text-[40px]">
+              <h2 className="font-serif text-[30px] leading-tight text-[#0B2A6F] sm:text-[38px]">
                 Prediction, not measurement.
               </h2>
               <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-ink-soft">
@@ -262,36 +174,17 @@ export default function HomePage() {
 
             <div>
               <div className="flex items-end justify-between border-b border-line pb-3">
-                <p className="micro-label">Release state</p>
+                <p className="micro-label">Phase 0</p>
                 <Badge tone="warm" dot>
-                  Phase 0
+                  Audit in progress
                 </Badge>
               </div>
-              <div className="divide-y divide-line">
-                {RELEASE_STATE.map((item, index) => (
-                  <div key={item.label} className="flex items-center gap-3 py-3">
-                    <span className="w-5 font-mono text-[10px] text-ink-faint">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="flex-1 text-[12px] text-ink-soft">
-                      {item.label}
-                    </span>
-                    <Badge tone={item.tone} dot>
-                      {item.value}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-
-              <dl className="mt-6 grid grid-cols-2 gap-px border border-line bg-line text-[11px]">
-                {[
-                  ["Model family", "CPGMoE"],
-                  ["Training domain", "TCGA bulk multi-omics"],
-                  ["Target space", "450K panel CpGs"],
-                  ["Checkpoint", "Not loaded"],
-                ].map(([label, value]) => (
+              <dl className="grid grid-cols-2 gap-px border border-line bg-line text-[11px]">
+                {MODEL_FACTS.map(([label, value]) => (
                   <div key={label} className="bg-white px-3 py-2.5">
-                    <dt className="text-[10px] uppercase text-ink-faint">{label}</dt>
+                    <dt className="text-[10px] uppercase text-ink-faint">
+                      {label}
+                    </dt>
                     <dd className="mt-0.5 font-medium text-ink">{value}</dd>
                   </div>
                 ))}
@@ -304,8 +197,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-[#050A2E] text-center text-white">
         <div className="hero-grid pointer-events-none absolute inset-0 opacity-30" />
         <div className="relative shell py-16">
-          <p className="text-[10px] uppercase text-[#8FA9FF]">Phase 0 atlas</p>
-          <h2 className="mt-3 font-serif text-[38px] leading-tight text-[#F2F6FF] sm:text-[48px]">
+          <h2 className="font-serif text-[38px] leading-tight text-[#F2F6FF] sm:text-[48px]">
             Enter the atlas.
           </h2>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
@@ -325,9 +217,6 @@ export default function HomePage() {
               Browse datasets
             </Link>
           </div>
-          <p className="mt-6 text-[10px] text-[#5F7085]">
-            Synthetic visualization · no experimental data
-          </p>
         </div>
       </section>
     </>

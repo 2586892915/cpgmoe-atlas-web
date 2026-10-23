@@ -31,14 +31,12 @@ export default function MethodsPage() {
   return (
     <div className="shell py-8">
       <div className="max-w-4xl">
-        <p className="eyebrow">Documentation</p>
-        <h1 className="mt-1 text-[28px] font-semibold leading-tight text-ink">
+        <h1 className="text-[28px] font-semibold leading-tight text-ink">
           Methods &amp; limitations
         </h1>
         <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-          This page defines what the prototype does, what it does not do, and
-          how the contract is expected to change when audited data and an
-          approved CPGMoE checkpoint are available.
+          What this prototype does, what it does not do, and what changes when
+          audited data arrives.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge tone="primary" dot>Phase 0</Badge>
