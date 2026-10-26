@@ -4,6 +4,25 @@
 
 > 重要边界：本仓库不读取真实人类 scRNA 文件，不运行 CPGMoE 推理，不生成甲基化图谱，不提供生产下载。所有 `predicted_beta` 都是 `is_synthetic_demo: true` 的界面契约演示值。
 
+## Phase 1 预实验（当前默认模式）
+
+站点默认以 **pilot_predicted** 模式运行，查询真实的 3M-cell Full-S3 预实验聚合结果：
+
+| 项 | 值 |
+| --- | --- |
+| 预实验细胞 | 3,000,000（组内覆盖 2,933,703） |
+| tissue × cell-type 组 | 2,093（其中 564 组为高置信：≥100 cells / ≥3 donors / ≥2 studies） |
+| 网页 CpG 面板 | 512 个高变 CpG（全部 probe 共 485,403） |
+| 聚合方式 | 每个单细胞预测值的组内均值 |
+| 版本 | `pilot_3m_20261024` |
+
+- 新增页面：`/groups`、`/groups/[id]`；`/atlas` 改为热图优先；`/browser`、`/compare` 接入 pilot 数据。
+- 新增接口：`/api/v1/pilot/{release,search,cpgs/[id],groups,groups/[id],heatmap,compare}`。
+- 回到 Phase 0 演示：构建时设置 `NEXT_PUBLIC_ATLAS_MODE=synthetic_demo`。
+- 数据来源、checkpoint sha256、覆盖边界见 `docs/PILOT_RELEASE.md`。
+
+> 预实验 ≠ 正式 Atlas。网站只提供聚合后的预测 β；逐细胞预测、原始 RNA、donor 级数据均不上线。
+
 ## 快速开始
 
 环境：Node.js 18.18+（本机验证为 Node 24.16.0）、npm 11+。
@@ -40,6 +59,8 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | `/atlas` | 合成 UMAP、颜色映射、点选/框选、分组甲基化、Demo prediction API |
 | `/browser` | Gene / CpG probe / GRCh38 region 查询、基因示意、分布图、基因组轨道占位 |
 | `/compare` | 两组切换、群体均值、Δ 热图、无推断统计的边界声明 |
+| `/groups` | tissue × cell-type 组目录：搜索、器官筛选、高置信过滤、分页 |
+| `/groups/[id]` | 单组详情：支持度、候选 signature CpG、跳转 Browser/Compare |
 | `/downloads` | 禁用中的计划下载产品、字段字典、API 契约 |
 | `/methods` | 方法、语义、评估边界、坐标约定、生命周期与治理 |
 | `/about` | 定位、数据政策、引用与联系方式占位 |
@@ -78,6 +99,13 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | GET | `/api/v1/models` | CPGMoE metadata；`checkpoint_hash` 为 `null` |
 | GET | `/api/v1/schema` | 字段字典与坐标约定 |
 | POST | `/api/v1/preview/predictions` | 合成预测预览；`checkpoint_loaded: false` |
+| GET | `/api/v1/pilot/release` | 预实验版本、计数、checkpoint 来源 |
+| GET | `/api/v1/pilot/search?q=` | gene / probe / GRCh38 区间 / group 检索 |
+| GET | `/api/v1/pilot/cpgs/{id}` | CpG 注释、分布统计、top groups |
+| GET | `/api/v1/pilot/groups` | 组列表（`q`、`tissue`、`cell_type`、`organ_system`、`high_confidence`） |
+| GET | `/api/v1/pilot/groups/{id}` | 组详情 + top CpGs |
+| GET | `/api/v1/pilot/heatmap` | 器官系统 / top groups 的 512-CpG 矩阵 |
+| POST | `/api/v1/pilot/compare` | `{ group_a, group_b, cpg_ids[] }` → Δβ，`statistical_tests: unavailable` |
 | POST | `/api/v1/preview/compare` | 合成 Δ 预览；`statistical_tests: "unavailable_in_demo"` |
 
 完整参数、状态码和示例见 [docs/API_CONTRACT.md](docs/API_CONTRACT.md)。

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { CinematicStaticFallback } from "@/components/home/cinematic-static-fallback";
+import { IS_PILOT } from "@/lib/data-mode";
 
 const CinematicCanvas = dynamic(
   () =>
@@ -85,7 +86,9 @@ export function CinematicHero() {
         <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-2 px-5 pb-6 text-[10px] text-[#7F93C8] sm:flex-row sm:items-end sm:justify-between sm:px-8">
           <span className="inline-flex items-center gap-2">
             <span className="h-1 w-1 rounded-full bg-[#E6B36F]" aria-hidden="true" />
-            Synthetic demo · audit in progress
+            {IS_PILOT
+              ? "Pilot predictions · not measured methylation"
+              : "Synthetic demo · audit in progress"}
           </span>
           <span className="hidden flex-col items-center gap-1 text-[#8FA9FF]/70 sm:flex">
             <span>Drag to rotate · scroll to explore</span>

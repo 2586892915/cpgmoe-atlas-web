@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { IS_PILOT } from "@/lib/data-mode";
+import { pilotRelease } from "@/lib/pilot";
 
 export const metadata: Metadata = {
   title: "Methods & limitations",
@@ -39,7 +41,7 @@ export default function MethodsPage() {
           audited data arrives.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Badge tone="primary" dot>Phase 0</Badge>
+          <Badge tone="primary" dot>{IS_PILOT ? "Pilot release" : "Phase 0"}</Badge>
           <Badge tone="warm" dot>Research use only</Badge>
           <Badge tone="neutral">GRCh38 / hg38</Badge>
         </div>
@@ -72,6 +74,41 @@ export default function MethodsPage() {
 
         <div className="max-w-3xl">
           <Section id="data-status" title="Data status">
+            {IS_PILOT ? (
+              <>
+                <p>
+                  This deployment serves the 3M-cell Full-S3 pilot:
+                  {" "}
+                  {pilotRelease.n_cells_in_groups.toLocaleString("en-US")} cells
+                  across {pilotRelease.n_groups.toLocaleString("en-US")}{" "}
+                  tissue × cell-type groups, with{" "}
+                  {pilotRelease.n_profiled_cpgs} high-variance panel CpGs.
+                </p>
+                <dl className="panel divide-y divide-line text-[12px]">
+                  {[
+                    ["Release", pilotRelease.release_id],
+                    ["Aggregation", pilotRelease.aggregation],
+                    ["Checkpoint", pilotRelease.checkpoint.sha256],
+                    ["Panel", `${pilotRelease.n_profiled_cpgs} / ${pilotRelease.n_panel_probes.toLocaleString("en-US")} CpGs`],
+                    ["Groups", `${pilotRelease.n_groups} (${pilotRelease.n_groups_high_confidence} high-confidence)`],
+                  ].map(([label, value]) => (
+                    <div key={label} className="grid grid-cols-[130px_1fr] gap-3 px-3 py-2">
+                      <dt className="text-ink-faint">{label}</dt>
+                      <dd className="mono break-all text-ink-soft">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="border border-warm/25 bg-warm-wash px-3 py-2 text-[12px] text-warm">
+                  {pilotRelease.caveat}
+                </div>
+                <p>
+                  Per-cell predictions, raw RNA and donor-level rows are not
+                  served by this website. Groups with fewer than three donors or
+                  two studies are marked exploratory.
+                </p>
+              </>
+            ) : (
+              <>
             <p>
               The human scRNA audit is in progress. Production cell counts and
               eligibility rates are withheld until the audit produces
@@ -87,6 +124,8 @@ export default function MethodsPage() {
               The number of demo datasets on the site is a UI fixture, not a
               report of audited collection size.
             </p>
+              </>
+            )}
           </Section>
 
           <Section id="model" title="Model">
@@ -103,8 +142,18 @@ export default function MethodsPage() {
                 ["Target", "450K panel CpG beta values"],
                 ["Training domain", "TCGA bulk multi-omics"],
                 ["Output", "Predicted beta in [0, 1]"],
-                ["Checkpoint", "Not loaded in Phase 0; hash is null"],
-                ["Inference", "Not executed by this website"],
+                [
+                  "Checkpoint",
+                  IS_PILOT
+                    ? `Full-S3 ${pilotRelease.checkpoint.sha256.slice(0, 16)}… (offline)`
+                    : "Not loaded in Phase 0; hash is null",
+                ],
+                [
+                  "Inference",
+                  IS_PILOT
+                    ? "Not executed by this website; aggregates are consumed as-is"
+                    : "Not executed by this website",
+                ],
               ].map(([label, value]) => (
                 <div key={label} className="grid grid-cols-[130px_1fr] gap-3 px-3 py-2">
                   <dt className="text-ink-faint">{label}</dt>

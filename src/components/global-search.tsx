@@ -4,13 +4,20 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { parseSearchQuery } from "@/lib/coordinate-utils";
+import { IS_PILOT } from "@/lib/data-mode";
 import { Badge } from "@/components/ui/badge";
 
-const EXAMPLES = [
-  { label: "TP53", value: "TP53" },
-  { label: "cg00000029", value: "cg00000029" },
-  { label: "chr17:7,668,001-7,690,000", value: "chr17:7,668,001-7,690,000" },
-];
+const EXAMPLES = IS_PILOT
+  ? [
+      { label: "PTPRN2", value: "PTPRN2" },
+      { label: "cg26173773", value: "cg26173773" },
+      { label: "chrX:90,689,602-90,690,119", value: "chrX:90689602-90690119" },
+    ]
+  : [
+      { label: "TP53", value: "TP53" },
+      { label: "cg00000029", value: "cg00000029" },
+      { label: "chr17:7,668,001-7,690,000", value: "chr17:7,668,001-7,690,000" },
+    ];
 
 export function GlobalSearch({ autoFocus = false }: { autoFocus?: boolean }) {
   const router = useRouter();
@@ -98,7 +105,7 @@ export function GlobalSearch({ autoFocus = false }: { autoFocus?: boolean }) {
           </span>
         ))}
         <span className="w-full text-[11px] text-ink-faint sm:w-auto">
-          GRCh38/hg38 · demo records only
+          GRCh38/hg38 · {IS_PILOT ? "512-CpG pilot panel" : "demo records only"}
         </span>
       </div>
       {error ? (

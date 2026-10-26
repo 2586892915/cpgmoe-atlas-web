@@ -6,14 +6,26 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { CinematicHeader } from "@/components/cinematic-header";
 import { Logo } from "@/components/logo";
+import { IS_PILOT } from "@/lib/data-mode";
 
-const PRIMARY_LINKS = [
+const BASE_LINKS = [
   { href: "/datasets", label: "Datasets" },
   { href: "/atlas", label: "Cell Atlas" },
   { href: "/browser", label: "Gene & CpG" },
   { href: "/compare", label: "Compare" },
   { href: "/downloads", label: "Downloads" },
 ];
+
+const PRIMARY_LINKS = IS_PILOT
+  ? [
+      { href: "/datasets", label: "Datasets" },
+      { href: "/atlas", label: "Atlas" },
+      { href: "/groups", label: "Groups" },
+      { href: "/browser", label: "Gene & CpG" },
+      { href: "/compare", label: "Compare" },
+      { href: "/downloads", label: "Downloads" },
+    ]
+  : BASE_LINKS;
 
 const SECONDARY_LINKS = [
   { href: "/methods", label: "Methods" },
@@ -79,7 +91,7 @@ export function SiteHeader() {
           </nav>
           <span className="ml-2 hidden items-center gap-1.5 border border-warm/30 bg-warm-wash px-2 py-1 text-[11px] font-medium text-warm sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-warm" aria-hidden="true" />
-            Audit in progress
+            {IS_PILOT ? "Pilot release" : "Audit in progress"}
           </span>
           <button
             type="button"

@@ -17,3 +17,28 @@ export const AUDIT_STATE_LABEL = "Data audit in progress";
 
 export const MODEL_EVIDENCE_NOTE =
   "Research-use prediction; not measured single-cell DNA methylation.";
+
+/**
+ * Phase 1 mode switch.
+ *
+ * `pilot_predicted` serves the 3M-cell Full-S3 pilot aggregates that have been
+ * produced offline. `synthetic_demo` keeps the original Phase 0 demo available
+ * (set NEXT_PUBLIC_ATLAS_MODE=synthetic_demo). The switch never changes the
+ * meaning of a stored value: pilot responses carry their own release id.
+ */
+export type AtlasMode = "synthetic_demo" | "pilot_predicted";
+
+export const ACTIVE_DATA_MODE: AtlasMode =
+  process.env.NEXT_PUBLIC_ATLAS_MODE === "synthetic_demo"
+    ? "synthetic_demo"
+    : "pilot_predicted";
+
+export const IS_PILOT = ACTIVE_DATA_MODE === "pilot_predicted";
+
+export const MODE_BANNER = IS_PILOT
+  ? "Pilot predictions — not measured methylation"
+  : "Demo environment — synthetic data only";
+
+export const MODE_BANNER_DETAIL = IS_PILOT
+  ? "3M-cell Full-S3 pilot · 512-CpG web panel"
+  : "Illustrative values only.";

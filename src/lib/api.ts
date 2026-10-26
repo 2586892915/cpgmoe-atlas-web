@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { ProviderError } from "@/lib/atlas-provider";
 import { DATA_MODE } from "@/lib/data-mode";
+import { PILOT_RELEASE_ID } from "@/lib/pilot";
 
 const DEMO_HEADERS = {
   "Cache-Control": "no-store",
@@ -10,6 +11,31 @@ const DEMO_HEADERS = {
 
 export function jsonResponse(payload: unknown, status = 200): NextResponse {
   return NextResponse.json(payload, { status, headers: DEMO_HEADERS });
+}
+
+const PILOT_HEADERS = {
+  "Cache-Control": "no-store",
+  "X-Data-Mode": "pilot_predicted",
+  "X-Release-Id": PILOT_RELEASE_ID,
+};
+
+export function pilotResponse(payload: unknown, status = 200): NextResponse {
+  return NextResponse.json(payload, { status, headers: PILOT_HEADERS });
+}
+
+export function pilotError(
+  code: string,
+  message: string,
+  status: number,
+): NextResponse {
+  return pilotResponse(
+    {
+      data_mode: "pilot_predicted",
+      release_id: PILOT_RELEASE_ID,
+      error: { code, message },
+    },
+    status,
+  );
 }
 
 export function jsonError(
