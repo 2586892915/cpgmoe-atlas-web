@@ -61,8 +61,8 @@ export default async function ComparePage({
               Compare groups
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-              Mean predicted β for two tissue × cell-type groups over the 24
-              highest-variance pilot CpGs. Δβ = A − B; no statistics are computed.
+              Two groups, mean predicted β over the 24 highest-variance CpGs.
+              Δβ = A − B; no statistics.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
@@ -121,8 +121,7 @@ export default async function ComparePage({
           </button>
         </form>
         <p className="mt-2 text-[10px] text-ink-faint">
-          Selects list the 200 largest groups; open a group page to compare it
-          from there.
+          Lists the 200 largest groups.
         </p>
 
         {groupAInfo && groupBInfo ? (
@@ -144,7 +143,41 @@ export default async function ComparePage({
               ))}
             </div>
 
-            <div className="mt-5 border-y border-line">
+            <div className="mt-5 flex items-center justify-between">
+              <p className="micro-label">Probes ranked by |Δβ|</p>
+              <div className="flex items-center gap-3 text-[11px]">
+                <Link
+                  href={`/compare?a=${groupBInfo.group_id}&b=${groupAInfo.group_id}`}
+                  className="text-primary hover:underline"
+                >
+                  Swap A / B
+                </Link>
+                <a
+                  download={`cpgmoe_pilot_compare_${groupAInfo.group_id}_${groupBInfo.group_id}.csv`}
+                  href={`data:text/csv;charset=utf-8,${encodeURIComponent(
+                    [
+                      "cpg_id,genes,chr,pos,beta_a,beta_b,delta",
+                      ...rows.map((row) =>
+                        [
+                          row.cpg_id,
+                          `"${(row.genes ?? "").replace(/"/g, '""')}"`,
+                          row.chr ?? "",
+                          row.pos ?? "",
+                          row.mean_beta_a.toFixed(4),
+                          row.mean_beta_b.toFixed(4),
+                          row.delta_beta.toFixed(4),
+                        ].join(","),
+                      ),
+                    ].join("\n"),
+                  )}`}
+                  className="text-primary hover:underline"
+                >
+                  Download CSV
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-2 border-y border-line">
               <div className="hidden grid-cols-[1.1fr_1.5fr_0.6fr_0.6fr_0.7fr] gap-3 px-2 py-2 text-[10px] uppercase text-ink-faint md:grid">
                 <span>CpG</span>
                 <span>Locus / gene</span>
@@ -183,10 +216,9 @@ export default async function ComparePage({
               ))}
             </div>
 
-            <p className="mt-3 max-w-3xl text-[11px] leading-relaxed text-ink-faint">
-              Groups differ in study coverage ({groupAInfo.n_datasets} vs{" "}
+            <p className="mt-3 text-[11px] leading-relaxed text-ink-faint">
+              Study coverage differs ({groupAInfo.n_datasets} vs{" "}
               {groupBInfo.n_datasets} studies), so Δβ is descriptive only.
-              Study effects are not separable at this level.
             </p>
           </>
         ) : null}

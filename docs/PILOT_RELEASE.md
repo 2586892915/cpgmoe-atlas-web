@@ -124,4 +124,4 @@ values.
 | Compare with effect sizes | Done (Δβ only, no p-values) |
 | Full 485,403-probe browser | **Not done** — only 512 CpGs carry group aggregates |
 | TP53 example | **Unavailable** — TP53 is not on the 512 high-variance panel |
-| Downloads | Pilot aggregates are not yet exposed as files |
+| Downloads | Done — `/downloads` serves groups.csv, cpgs.csv, cpg_stats.csv, heatmap_organ_systems.csv, release.json |

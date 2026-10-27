@@ -76,8 +76,8 @@ export default async function GroupsPage({
             Tissue × cell-type groups
           </h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-            {pilotRelease.n_groups.toLocaleString("en-US")} groups profiled in the
-            pilot. Support counts come from the selected single-cell cohort.
+            {pilotRelease.n_groups.toLocaleString("en-US")} groups with cell,
+            donor and study support.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">

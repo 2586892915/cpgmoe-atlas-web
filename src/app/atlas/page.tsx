@@ -33,9 +33,8 @@ export default async function AtlasPage({
               Pan-tissue Atlas
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-              Aggregated Full-S3 predicted β across tissue and cell-type groups.
-              The heatmap is the primary view; per-cell embeddings are not
-              shipped to the browser.
+              Aggregated Full-S3 predicted β across 2,093 tissue and cell-type
+              groups. Heatmap first; no per-cell profiles in the browser.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">

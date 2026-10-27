@@ -151,11 +151,34 @@ export function CpgPanel({ cpgId }: { cpgId: string | null }) {
         ))}
       </dl>
 
+      {stats?.histogram?.length ? (
+        <div className="mt-4">
+          <div className="flex h-12 items-end gap-[2px]">
+            {stats.histogram.map((count, index) => {
+              const max = Math.max(...stats.histogram);
+              return (
+                <div
+                  key={index}
+                  className="flex-1 bg-primary/70"
+                  style={{ height: `${max ? (count / max) * 100 : 0}%` }}
+                  title={`${(index / 10).toFixed(1)}–${((index + 1) / 10).toFixed(
+                    1,
+                  )}: ${count} groups`}
+                />
+              );
+            })}
+          </div>
+          <div className="mt-1 flex justify-between text-[9px] text-ink-faint">
+            <span>0</span>
+            <span>β across {detail.n_groups.toLocaleString("en-US")} groups</span>
+            <span>1</span>
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-5 flex items-center justify-between">
         <p className="micro-label">Top groups by |Δβ|</p>
-        <span className="text-[10px] text-ink-faint">
-          high-confidence groups only
-        </span>
+        <span className="text-[10px] text-ink-faint">high-confidence only</span>
       </div>
 
       <div className="mt-2 divide-y divide-line">
@@ -204,7 +227,7 @@ export function CpgPanel({ cpgId }: { cpgId: string | null }) {
 
       <p className="mt-4 flex items-start gap-1.5 text-[10px] leading-relaxed text-ink-faint">
         <ArrowUpRight className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-        {detail.coverage_note}
+        Aggregated predicted β · 512-CpG pilot panel.
       </p>
     </div>
   );

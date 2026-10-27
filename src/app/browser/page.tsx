@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 export default async function BrowserPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; cpg?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, cpg } = await searchParams;
 
   if (IS_PILOT) {
     const query = q ?? "";
@@ -31,8 +31,7 @@ export default async function BrowserPage({
               Gene &amp; CpG Browser
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-              Search the piloted 512-CpG panel by gene, probe, or GRCh38
-              interval, then open group-level predicted β.
+              Search the piloted 512-CpG panel by gene, probe, or GRCh38 interval.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -47,7 +46,7 @@ export default async function BrowserPage({
           <PilotBrowser
             initialQuery={query}
             initialResults={results}
-            suggestedCpg={results.cpgs[0]?.cpg_id ?? null}
+            suggestedCpg={cpg ?? results.cpgs[0]?.cpg_id ?? null}
           />
         </div>
       </div>

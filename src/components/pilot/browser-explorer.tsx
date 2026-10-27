@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { CpgPanel } from "@/components/pilot/cpg-panel";
 import type { PilotCpg, PilotGroup } from "@/lib/pilot";
 
@@ -52,6 +51,19 @@ export function PilotBrowser({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function syncUrl(nextQuery: string, cpgId: string | null) {
+    const params = new URLSearchParams();
+    if (nextQuery.trim()) params.set("q", nextQuery.trim());
+    if (cpgId) params.set("cpg", cpgId);
+    const text = params.toString();
+    window.history.replaceState(null, "", text ? `/browser?${text}` : "/browser");
+  }
+
+  function selectCpg(cpgId: string) {
+    setSelected(cpgId);
+    syncUrl(query, cpgId);
+  }
+
   async function runSearch(next: string) {
     setLoading(true);
     setError(null);
@@ -64,7 +76,10 @@ export function PilotBrowser({
         throw new Error(payload?.error?.message ?? "Search failed");
       }
       setResults(payload as SearchPayload);
-      if (payload.cpgs?.length > 0) setSelected(payload.cpgs[0].cpg_id);
+      if (payload.cpgs?.length > 0) {
+        setSelected(payload.cpgs[0].cpg_id);
+        syncUrl(next, payload.cpgs[0].cpg_id);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Search failed");
     } finally {
@@ -135,7 +150,7 @@ export function PilotBrowser({
                   results.cpgs.length === 1 ? "" : "s"
                 }`}
           </p>
-          <Badge tone="neutral">512-CpG panel</Badge>
+          <span className="text-[10px] text-ink-faint">512-CpG panel</span>
         </div>
 
         {results.cpgs.length > 0 ? (
@@ -144,7 +159,7 @@ export function PilotBrowser({
               <button
                 key={cpg.cpg_id}
                 type="button"
-                onClick={() => setSelected(cpg.cpg_id)}
+                onClick={() => selectCpg(cpg.cpg_id)}
                 className={`grid w-full grid-cols-[1fr_auto] items-center gap-3 px-1 py-3 text-left transition-colors hover:bg-paper-tint ${
                   selected === cpg.cpg_id ? "bg-paper-tint" : ""
                 }`}
@@ -174,9 +189,7 @@ export function PilotBrowser({
                 : "No probe in the pilot panel matches this query."}
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-ink-soft">
-              The web slice serves 512 high-variance panel CpGs only. Absence
-              here does not mean the probe is absent from the full 485,403-probe
-              manifest.
+              The web slice covers 512 of 485,403 panel probes.
             </p>
           </div>
         )}

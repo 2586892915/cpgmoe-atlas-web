@@ -109,6 +109,7 @@ def main() -> None:
     stats = []
     for index, cpg_id in enumerate(cpg_ids):
         column = values[:, index]
+        histogram, _ = np.histogram(column, bins=10, range=(0.0, 1.0))
         stats.append(
             {
                 "cpg_id": cpg_id,
@@ -120,6 +121,7 @@ def main() -> None:
                 "p90": round(float(np.percentile(column, 90)), 4),
                 "max": round(float(np.max(column)), 4),
                 "n_groups": int(column.shape[0]),
+                "histogram": histogram.astype(int).tolist(),
             }
         )
 
@@ -201,6 +203,27 @@ def main() -> None:
         "heatmap.json",
         {"cpg_ids": cpg_ids, "organ_systems": organ_rows, "top_groups": top_rows},
     )
+
+    # ---- public downloads (aggregated tables only) ---------------------------
+    public = Path(__file__).resolve().parents[2] / "public" / "pilot"
+    public.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(groups).to_csv(public / "groups.csv", index=False)
+    pd.DataFrame(cpgs).to_csv(public / "cpgs.csv", index=False)
+    pd.DataFrame(stats).to_csv(public / "cpg_stats.csv", index=False)
+    pd.DataFrame(
+        [
+            {
+                "organ_system": row["label"],
+                "n_groups": row["n_groups"],
+                "n_cells": row["n_cells"],
+                **{cpg: row["values"][i] / 1000 for i, cpg in enumerate(cpg_ids)},
+            }
+            for row in organ_rows
+        ]
+    ).to_csv(public / "heatmap_organ_systems.csv", index=False)
+    (public / "release.json").write_text(json.dumps(release, indent=2), encoding="utf-8")
+    for name in ["groups.csv", "cpgs.csv", "cpg_stats.csv", "heatmap_organ_systems.csv", "release.json"]:
+        print(f"public/pilot/{name:26s} {(public / name).stat().st_size/1024:8.1f} KB")
 
 
 if __name__ == "__main__":

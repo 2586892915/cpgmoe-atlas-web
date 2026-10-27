@@ -97,7 +97,9 @@ describe("pilot API routes", () => {
     expect(response.status).toBe(200);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body.n_groups).toBe(2093);
-    expect((body.stats as Record<string, number>).mean).toBeGreaterThan(0);
+    const stats = body.stats as Record<string, number | number[]>;
+    expect(stats.mean as number).toBeGreaterThan(0);
+    expect(stats.histogram as number[]).toHaveLength(10);
   });
 
   it("GET /api/v1/pilot/cpgs/[id] returns 404 for an off-panel probe", async () => {

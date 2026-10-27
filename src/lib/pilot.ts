@@ -46,6 +46,7 @@ export type PilotCpgStat = {
   p90: number;
   max: number;
   n_groups: number;
+  histogram: number[];
 };
 
 type ProfileFile = {

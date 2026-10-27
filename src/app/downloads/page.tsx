@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import fs from "node:fs";
+import path from "node:path";
 import {
   Code2,
   Database,
@@ -10,6 +12,8 @@ import {
   Table2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { IS_PILOT } from "@/lib/data-mode";
+import { pilotRelease } from "@/lib/pilot";
 
 export const metadata: Metadata = {
   title: "Downloads & API",
@@ -24,7 +28,9 @@ const DOWNLOADS = [
     format: "TSV · one row per dataset",
     description:
       "Fields: dataset_id, tissue, disease, assay, status, evidence tier, licence status, audited cell count.",
-    reason: "No production catalogue has been released. The audit is in progress.",
+    reason: IS_PILOT
+      ? "Pilot aggregates are downloadable above; the audited catalogue is still pending."
+      : "No production catalogue has been released. The audit is in progress.",
   },
   {
     icon: Table2,
@@ -32,7 +38,9 @@ const DOWNLOADS = [
     format: "Parquet · dataset × group × CpG",
     description:
       "Group-level predicted beta with cell counts, model/checkpoint hash, and provenance identifiers.",
-    reason: "No production predictions available yet. No checkpoint has been run.",
+    reason: IS_PILOT
+      ? "Only the 512-CpG slice is published; the full 485,403 × 2,093 matrix is not."
+      : "No production predictions available yet. No checkpoint has been run.",
   },
   {
     icon: FileJson,
@@ -40,7 +48,7 @@ const DOWNLOADS = [
     format: "CSV/Parquet · on demand",
     description:
       "Requested from a selection, capped and queued. Never a full atlas dump from the browser.",
-    reason: "On-demand inference is not open in Phase 0.",
+    reason: "Per-cell predictions and raw RNA stay closed in every mode.",
   },
 ];
 
@@ -52,8 +60,47 @@ const FIELDS = [
   ["predicted_beta", "number [0,1]", "Predicted methylation beta, never a measured scDNAm value.", "No"],
   ["n_cells_aggregated", "integer", "Number of cells behind a group-level prediction.", "Yes"],
   ["provenance_id", "string", "Links a value to model, checkpoint, input, and audit records.", "No"],
-  ["is_synthetic_demo", "boolean", "True for every Phase 0 value.", "No"],
+  ["data_mode", "enum", "synthetic_demo | pilot_predicted.", "No"],
 ];
+
+const PILOT_FILES = [
+  {
+    name: "groups.csv",
+    label: "Tissue × cell-type groups",
+    detail: "2,093 rows · tissue, cell type, organ, cells, donors, studies, high-confidence flag",
+  },
+  {
+    name: "cpgs.csv",
+    label: "512-CpG panel",
+    detail: "hg38 chr/pos, island relation, gene, promoter, panel variance",
+  },
+  {
+    name: "cpg_stats.csv",
+    label: "Per-CpG distribution",
+    detail: "mean, sd, min, p10, median, p90, max across 2,093 groups",
+  },
+  {
+    name: "heatmap_organ_systems.csv",
+    label: "Organ-system matrix",
+    detail: "16 organ systems × 512 CpGs, cell-weighted mean predicted β",
+  },
+  {
+    name: "release.json",
+    label: "Release manifest",
+    detail: "release id, counts, aggregation, checkpoint sha256, caveat",
+  },
+];
+
+function sizeOf(name: string): string {
+  try {
+    const bytes = fs.statSync(path.join(process.cwd(), "public", "pilot", name)).size;
+    return bytes > 1024 * 1024
+      ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
+      : `${Math.round(bytes / 1024)} KB`;
+  } catch {
+    return "—";
+  }
+}
 
 export default function DownloadsPage() {
   return (
@@ -64,14 +111,46 @@ export default function DownloadsPage() {
             Downloads &amp; API
           </h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-            Products unlock once audited data and predictions exist. The API
-            contract is available now.
+            {IS_PILOT
+              ? "Aggregated pilot tables are available now. Per-cell and donor-level data stay closed."
+              : "Products unlock once audited data and predictions exist. The API contract is available now."}
           </p>
         </div>
-        <Badge tone="warm" dot>
-          No production predictions available yet
+        <Badge tone={IS_PILOT ? "primary" : "warm"} dot>
+          {IS_PILOT ? "Pilot aggregates downloadable" : "No production predictions available yet"}
         </Badge>
       </div>
+
+      {IS_PILOT ? (
+        <section className="mt-5">
+          <div className="flex flex-wrap items-end justify-between gap-2 border-b border-line pb-2">
+            <p className="micro-label">Available now · {pilotRelease.release_id}</p>
+            <p className="text-[10px] text-ink-faint">
+              Aggregated predicted β · not measured methylation
+            </p>
+          </div>
+          <div className="divide-y divide-line">
+            {PILOT_FILES.map((file) => (
+              <a
+                key={file.name}
+                href={`/pilot/${file.name}`}
+                download
+                className="group grid gap-1 py-3 transition-colors hover:bg-paper-tint sm:grid-cols-[1.1fr_1.7fr_auto_auto] sm:items-center sm:gap-4"
+              >
+                <span className="text-[13px] font-medium text-ink group-hover:text-primary">
+                  {file.label}
+                </span>
+                <span className="text-[11px] text-ink-soft">{file.detail}</span>
+                <span className="mono text-[10px] text-ink-faint">{file.name}</span>
+                <span className="flex items-center gap-2 text-[10px] text-ink-faint sm:justify-end">
+                  <span className="tabular">{sizeOf(file.name)}</span>
+                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
         {DOWNLOADS.map((product) => {
@@ -95,7 +174,7 @@ export default function DownloadsPage() {
                 type="button"
                 className="btn mt-3 w-full"
                 disabled
-                title="No production predictions available yet"
+                title="Not available in this release"
               >
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 Download unavailable
@@ -110,21 +189,31 @@ export default function DownloadsPage() {
           <div>
             <p className="eyebrow">Integration</p>
             <h2 id="api-heading" className="mt-1 text-[22px] font-semibold text-ink">
-              Demo API
+              {IS_PILOT ? "Pilot API" : "Demo API"}
             </h2>
             <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-ink-soft">
-              Every response includes <span className="mono">data_mode: &quot;synthetic_demo&quot;</span>.
-              These endpoints validate the contract; they are not a production
-              service and do not load a model.
+              {IS_PILOT ? (
+                <>
+                  Every response includes{" "}
+                  <span className="mono">data_mode: &quot;pilot_predicted&quot;</span> and a
+                  release id. The API serves aggregates only; it never runs inference.
+                </>
+              ) : (
+                <>
+                  Every response includes{" "}
+                  <span className="mono">data_mode: &quot;synthetic_demo&quot;</span>. These
+                  endpoints validate the contract and do not load a model.
+                </>
+              )}
             </p>
           </div>
           <a
-            href="/api/v1/status"
+            href={IS_PILOT ? "/api/v1/pilot/release" : "/api/v1/status"}
             target="_blank"
             rel="noreferrer"
             className="btn btn-secondary"
           >
-            Open status JSON
+            {IS_PILOT ? "Open release JSON" : "Open status JSON"}
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           </a>
         </div>
@@ -137,11 +226,18 @@ export default function DownloadsPage() {
                 Read endpoints
               </p>
               <Badge tone="primary" dot>
-                Demo only
+                {IS_PILOT ? "Pilot release" : "Demo only"}
               </Badge>
             </div>
             <pre className="overflow-x-auto bg-ink px-4 py-3 font-mono text-[11px] leading-relaxed text-paper">
-{`GET /api/v1/status
+{IS_PILOT
+  ? `GET /api/v1/pilot/release
+GET /api/v1/pilot/search?q=
+GET /api/v1/pilot/cpgs/{cpg_id}
+GET /api/v1/pilot/groups?q=&tissue=&cell_type=&high_confidence=
+GET /api/v1/pilot/groups/{id}
+GET /api/v1/pilot/heatmap`
+  : `GET /api/v1/status
 GET /api/v1/datasets?search=&tissue=&cursor=&limit=
 GET /api/v1/datasets/{id}
 GET /api/v1/cpgs?query=&assembly=GRCh38
@@ -154,14 +250,23 @@ GET /api/v1/schema`}
             <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
               <p className="flex items-center gap-1.5 text-[12px] font-semibold text-ink">
                 <Code2 className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                Preview endpoints
+                {IS_PILOT ? "Compare endpoint" : "Preview endpoints"}
               </p>
               <Badge tone="warm" dot>
-                Synthetic response
+                {IS_PILOT ? "Δβ only" : "Synthetic response"}
               </Badge>
             </div>
             <pre className="overflow-x-auto bg-ink px-4 py-3 font-mono text-[11px] leading-relaxed text-paper">
-{`POST /api/v1/preview/predictions
+{IS_PILOT
+  ? `POST /api/v1/pilot/compare
+{ "group_a": 0, "group_b": 141,
+  "cpg_ids": ["cg26173773", "cg16698286"] }
+
+# Response always contains
+"data_mode": "pilot_predicted"
+"release_id": "pilot_3m_20261024"
+"statistical_tests": "unavailable"`
+  : `POST /api/v1/preview/predictions
 { "dataset_id": "DEMO_LUNG_ADENO_01",
   "cpg_ids": ["cgDEMO0001"] }
 
@@ -172,7 +277,7 @@ POST /api/v1/preview/compare
 
 # Response always contains
 "data_mode": "synthetic_demo"
-"statistical_tests": "unavailable_in_demo"   # compare only`}
+"statistical_tests": "unavailable_in_demo"`}
             </pre>
           </div>
         </div>

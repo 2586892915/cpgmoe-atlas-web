@@ -125,10 +125,9 @@ export default async function GroupPage({
       </div>
 
       <p className="mt-4 max-w-3xl text-[11px] leading-relaxed text-ink-faint">
-        These are candidate predicted differences within the pilot panel, not
-        validated markers. Group support is {group.n_datasets}{" "}
-        {group.n_datasets === 1 ? "study" : "studies"} /{" "}
-        {group.n_donors} donors; single-study groups are exploratory only.
+        Candidate predicted differences, not validated markers. Support:{" "}
+        {group.n_datasets} {group.n_datasets === 1 ? "study" : "studies"} /{" "}
+        {group.n_donors} donors.
       </p>
     </div>
   );

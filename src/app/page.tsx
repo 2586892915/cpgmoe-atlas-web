@@ -69,7 +69,7 @@ export default function HomePage() {
               </h2>
               <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-ink-soft sm:text-[15px]">
                 {IS_PILOT
-                  ? "CPGMoE infers panel-based DNA methylation from RNA expression. This pilot serves 3M predicted cells across tissue and cell-type groups."
+                  ? "CPGMoE infers panel-based DNA methylation from RNA expression. This pilot serves 3M predicted cells across 2,093 groups."
                   : "CPGMoE infers panel-based DNA methylation from RNA expression."}
               </p>
               <GlobalSearch />

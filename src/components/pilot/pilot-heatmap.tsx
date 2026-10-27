@@ -140,16 +140,43 @@ export function PilotHeatmap({ data }: { data: HeatmapData }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const rowIndex = Math.floor(
-      (event.clientY - rect.top - PAD_TOP) / ROW_HEIGHT,
-    );
+    const x = event.clientX - rect.left;
+    const rowIndex = Math.floor((event.clientY - rect.top - PAD_TOP) / ROW_HEIGHT);
     const row = rows[rowIndex];
     if (!row) return;
+    const gridWidth = rect.width - geometry.labelWidth - 8;
+    const cellWidth = gridWidth / columns;
+    const column = Math.floor((x - geometry.labelWidth) / cellWidth);
+    if (x >= geometry.labelWidth && column >= 0 && column < columns) {
+      const cpg = data.cpg_ids[column];
+      router.push(`/browser?q=${cpg}&cpg=${cpg}`);
+      return;
+    }
     if (view === "group" && row.group_id !== undefined) {
       router.push(`/groups/${row.group_id}`);
     } else {
       router.push(`/groups?organ_system=${encodeURIComponent(row.label)}`);
     }
+  }
+
+  function downloadCsv() {
+    const header = ["label", "n_cells", ...data.cpg_ids].join(",");
+    const lines = rows.map((row) =>
+      [
+        `"${row.label.replace(/"/g, '""')}"`,
+        row.n_cells,
+        ...row.values.map((value) => (value / data.scale).toFixed(3)),
+      ].join(","),
+    );
+    const blob = new Blob([[header, ...lines].join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `cpgmoe_pilot_${view === "organ" ? "organ_systems" : "top_groups"}_512cpg.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -189,12 +216,19 @@ export function PilotHeatmap({ data }: { data: HeatmapData }) {
         </div>
       </div>
 
-      <div className="mt-3 flex gap-1 text-[10px] text-ink-faint">
+      <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-ink-faint">
         <span>{rows.length} rows</span>
         <span>·</span>
         <span>{columns} CpGs</span>
         <span>·</span>
-        <span>click a row to open its records</span>
+        <span>click a cell for its CpG, a label for the group</span>
+        <button
+          type="button"
+          onClick={downloadCsv}
+          className="ml-auto text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary"
+        >
+          Download CSV
+        </button>
       </div>
 
       <div ref={wrapRef} className="relative mt-1 w-full overflow-x-hidden">
@@ -224,9 +258,8 @@ export function PilotHeatmap({ data }: { data: HeatmapData }) {
       </div>
 
       <p className="mt-2 text-[10px] leading-relaxed text-ink-faint">
-        Rows are {view === "organ" ? "organ systems (cell-weighted mean of their groups)" : "the 48 largest tissue · cell-type groups"}.
-        Each cell is an aggregated mean of Full-S3 predicted β, not a measured
-        methylation value and not a per-cell profile.
+        Rows: {view === "organ" ? "16 organ systems (cell-weighted)" : "48 largest groups"}.
+        Cells are group means of predicted β, not measurements.
       </p>
     </div>
   );
