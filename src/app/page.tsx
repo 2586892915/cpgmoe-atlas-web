@@ -147,7 +147,7 @@ export default function HomePage() {
             {organs.map((organ) => (
               <Link
                 key={organ.label}
-                href={`/groups?organ_system=${encodeURIComponent(organ.label)}`}
+                href={`/tissues?organ=${encodeURIComponent(organ.label)}`}
                 className="group bg-white px-4 py-4 transition-colors hover:bg-[#F7FAFE]"
               >
                 <p className="tabular text-[10px] text-ink-faint">
@@ -259,11 +259,26 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="border-y border-[#D8E3F3] bg-[#F7FAFE]">
-        <div className="shell py-12">
-          <VisualTeaser />
+      {!IS_PILOT ? (
+        <section className="border-y border-[#D8E3F3] bg-[#F7FAFE]">
+          <div className="shell py-12">
+            <VisualTeaser />
+          </div>
+        </section>
+      ) : null}
+
+      {IS_PILOT ? (
+        <div className="shell flex flex-wrap items-center justify-between gap-2 border-b border-line py-3 text-[10px] text-ink-faint">
+          <span>Release {pilotRelease.release_id}</span>
+          <span>
+            Updated {pilotRelease.generated_at} · {pilotRelease.n_profiled_cpgs} CpGs ·{" "}
+            {pilotRelease.n_groups.toLocaleString("en-US")} groups
+          </span>
+          <Link href="/methods#data-status" className="hover:text-primary">
+            Release notes
+          </Link>
         </div>
-      </section>
+      ) : null}
 
       <section className="relative overflow-hidden bg-[#050A2E] text-center text-white">
         <div className="hero-grid pointer-events-none absolute inset-0 opacity-30" />

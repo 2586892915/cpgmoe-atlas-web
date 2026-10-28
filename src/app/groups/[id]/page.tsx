@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { humanize } from "@/lib/format";
 import { getGroup, pilotRelease, topCpgsForGroup } from "@/lib/pilot";
 
 export const metadata: Metadata = {
@@ -32,7 +33,13 @@ export default async function GroupPage({
             {group.cell_type}
           </h1>
           <p className="mt-1 text-[14px] text-ink-soft">
-            {group.tissue} · {group.organ_system}
+            <Link
+              href={`/tissues/${encodeURIComponent(group.tissue)}`}
+              className="hover:text-primary"
+            >
+              {group.tissue}
+            </Link>{" "}
+            · {humanize(group.organ_system)}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">

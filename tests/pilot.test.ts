@@ -5,10 +5,13 @@ import { GET as getPilotSearch } from "@/app/api/v1/pilot/search/route";
 import {
   compareGroups,
   cpgGroupValues,
+  getTissue,
   highVarianceCpgs,
   listGroups,
+  listTissues,
   pilotHeatmap,
   searchPilot,
+  tissueCpgs,
 } from "@/lib/pilot";
 
 describe("pilot data layer", () => {
@@ -77,6 +80,20 @@ describe("pilot data layer", () => {
       expect(row.values).toHaveLength(512);
     }
     expect(highVarianceCpgs(24)).toHaveLength(24);
+  });
+
+  it("aggregates groups into tissues without losing cells", () => {
+    const tissues = listTissues();
+    expect(tissues).toHaveLength(205);
+    expect(tissues.reduce((sum, tissue) => sum + tissue.n_cells, 0)).toBe(2933703);
+    expect(getTissue("blood")?.n_groups).toBeGreaterThan(0);
+  });
+
+  it("ranks tissue CpG shifts by absolute delta", () => {
+    const top = tissueCpgs("blood", 6);
+    expect(top).toHaveLength(6);
+    const magnitude = top.map((row) => Math.abs(row.delta));
+    expect([...magnitude].sort((a, b) => b - a)).toEqual(magnitude);
   });
 });
 

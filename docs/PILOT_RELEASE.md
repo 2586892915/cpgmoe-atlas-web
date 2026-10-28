@@ -119,7 +119,7 @@ values.
 | --- | --- |
 | Query a real gene / probe / interval | Done for the 512-CpG panel (182 genes annotated) |
 | Group-level β with support counts | Done (2,093 groups, 512 CpGs) |
-| Cell Type Atlas / Tissue Explorer | Adapted to tissue × cell-type groups (`/groups`) |
+| Cell Type Atlas / Tissue Explorer | Done as `/groups` and `/tissues`, each with a detail page |
 | Atlas as heatmap-first | Done (`/atlas`) |
 | Compare with effect sizes | Done (Δβ only, no p-values) |
 | Full 485,403-probe browser | **Not done** — only 512 CpGs carry group aggregates |

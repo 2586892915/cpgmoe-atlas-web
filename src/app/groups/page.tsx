@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { IS_PILOT } from "@/lib/data-mode";
+import { humanize } from "@/lib/format";
 import { listGroups, pilotRelease } from "@/lib/pilot";
 
 export const metadata: Metadata = {
@@ -182,7 +183,9 @@ export default async function GroupsPage({
               {group.cell_type}
             </span>
             <span className="truncate text-[11px] text-ink-soft">{group.tissue}</span>
-            <span className="truncate text-[10px] text-ink-faint">{group.organ_system}</span>
+            <span className="truncate text-[10px] text-ink-faint">
+              {humanize(group.organ_system)}
+            </span>
             <span className="tabular text-[11px] text-ink-soft md:text-right">
               {group.n_cells.toLocaleString("en-US")}
             </span>

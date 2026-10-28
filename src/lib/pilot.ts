@@ -321,6 +321,85 @@ export function pilotHeatmap() {
   return heatmap;
 }
 
+export type PilotTissue = {
+  tissue: string;
+  organ_system: string;
+  n_groups: number;
+  n_cells: number;
+  n_donors: number;
+  n_datasets: number;
+  cell_types: string[];
+};
+
+let tissueCache: PilotTissue[] | null = null;
+
+export function listTissues(): PilotTissue[] {
+  if (tissueCache) return tissueCache;
+  const map = new Map<string, PilotTissue>();
+  for (const group of groups) {
+    const entry =
+      map.get(group.tissue) ??
+      ({
+        tissue: group.tissue,
+        organ_system: group.organ_system,
+        n_groups: 0,
+        n_cells: 0,
+        n_donors: 0,
+        n_datasets: 0,
+        cell_types: [],
+      } satisfies PilotTissue);
+    entry.n_groups += 1;
+    entry.n_cells += group.n_cells;
+    entry.n_donors = Math.max(entry.n_donors, group.n_donors);
+    entry.n_datasets = Math.max(entry.n_datasets, group.n_datasets);
+    if (!entry.cell_types.includes(group.cell_type)) {
+      entry.cell_types.push(group.cell_type);
+    }
+    map.set(group.tissue, entry);
+  }
+  tissueCache = [...map.values()].sort((a, b) => b.n_cells - a.n_cells);
+  return tissueCache;
+}
+
+export function getTissue(name: string): PilotTissue | null {
+  return listTissues().find((tissue) => tissue.tissue === name) ?? null;
+}
+
+export function tissueGroups(name: string): PilotGroup[] {
+  return groups
+    .filter((group) => group.tissue === name)
+    .sort((a, b) => b.n_cells - a.n_cells);
+}
+
+export function tissueCpgs(name: string, limit = 12) {
+  const members = tissueGroups(name);
+  if (members.length === 0) return [];
+  const weights = members.map((group) => group.n_cells);
+  const total = weights.reduce((sum, value) => sum + value, 0) || 1;
+  return profile.cpg_ids
+    .map((cpgId, column) => {
+      let weighted = 0;
+      for (let index = 0; index < members.length; index += 1) {
+        const row = rowByGroup.get(members[index].group_id);
+        if (row === undefined) continue;
+        weighted += profile.values[row][column] * weights[index];
+      }
+      const mean = weighted / total / profile.scale;
+      const cpg = cpgById.get(cpgId);
+      const reference = statById.get(cpgId)?.mean ?? 0;
+      return {
+        cpg_id: cpgId,
+        genes: cpg?.genes ?? null,
+        chr: cpg?.chr ?? null,
+        pos: cpg?.pos ?? null,
+        mean,
+        delta: mean - reference,
+      };
+    })
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, limit);
+}
+
 export function pilotOverview() {
   return {
     ...pilotEnvelope(),
