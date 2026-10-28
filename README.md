@@ -59,7 +59,7 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | `/atlas` | 合成 UMAP、颜色映射、点选/框选、分组甲基化、Demo prediction API |
 | `/browser` | Gene / CpG probe / GRCh38 region 查询、基因示意、分布图、基因组轨道占位 |
 | `/compare` | 两组切换、群体均值、Δ 热图、无推断统计的边界声明 |
-| `/groups` | tissue × cell-type 组目录：搜索、器官筛选、高置信过滤、分页 |
+| `/groups` | 兼容入口：重定向到 `/tissues`（组织优先） |
 | `/groups/[id]` | 单组详情：支持度、候选 signature CpG、跳转 Browser/Compare |
 | `/tissues` | 组织目录：搜索、器官筛选、组数/细胞数 |
 | `/tissues/[id]` | 组织详情：细胞类型构成、支持度、组织级 CpG 偏移 |

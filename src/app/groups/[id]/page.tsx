@@ -26,8 +26,11 @@ export default async function GroupPage({
     <div className="shell py-8">
       <div className="flex flex-col gap-3 border-b border-line pb-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <Link href="/groups" className="text-[11px] text-ink-faint hover:text-primary">
-            ← All groups
+          <Link
+            href={`/tissues/${encodeURIComponent(group.tissue)}`}
+            className="text-[11px] text-ink-faint hover:text-primary"
+          >
+            ← {group.tissue}
           </Link>
           <h1 className="mt-1 text-[28px] font-semibold leading-tight text-ink">
             {group.cell_type}

@@ -65,12 +65,6 @@ export default async function TissuePage({
 
       <div className="mt-7 flex items-end justify-between border-b border-line pb-2">
         <p className="micro-label">Cell-type groups in this tissue</p>
-        <Link
-          href={`/groups?q=${encodeURIComponent(tissue.tissue)}`}
-          className="text-[11px] text-primary hover:underline"
-        >
-          Open in Cell types →
-        </Link>
       </div>
       <div className="border-y border-line">
         <div className="hidden grid-cols-[1.8fr_0.6fr_0.5fr_0.5fr_auto] gap-3 px-2 py-2 text-[10px] uppercase text-ink-faint sm:grid">

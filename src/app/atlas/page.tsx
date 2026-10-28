@@ -80,8 +80,8 @@ export default async function AtlasPage({
             Open the CpG browser
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
-          <Link href="/groups" className="link-quiet inline-flex items-center gap-1">
-            Browse all groups
+          <Link href="/tissues" className="link-quiet inline-flex items-center gap-1">
+            Browse tissues
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
           <Link href="/compare" className="link-quiet inline-flex items-center gap-1">

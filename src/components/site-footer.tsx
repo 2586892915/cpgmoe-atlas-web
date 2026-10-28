@@ -5,7 +5,6 @@ import { IS_PILOT } from "@/lib/data-mode";
 const PORTAL_LINKS = IS_PILOT
   ? [
       ["/atlas", "Atlas"],
-      ["/groups", "Cell types"],
       ["/tissues", "Tissues"],
       ["/browser", "Gene & CpG"],
       ["/compare", "Compare"],

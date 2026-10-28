@@ -19,7 +19,6 @@ const BASE_LINKS = [
 const PRIMARY_LINKS = IS_PILOT
   ? [
       { href: "/atlas", label: "Atlas" },
-      { href: "/groups", label: "Cell types" },
       { href: "/tissues", label: "Tissues" },
       { href: "/browser", label: "Gene & CpG" },
       { href: "/compare", label: "Compare" },

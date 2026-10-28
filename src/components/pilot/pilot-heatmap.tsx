@@ -155,7 +155,7 @@ export function PilotHeatmap({ data }: { data: HeatmapData }) {
     if (view === "group" && row.group_id !== undefined) {
       router.push(`/groups/${row.group_id}`);
     } else {
-      router.push(`/groups?organ_system=${encodeURIComponent(row.label)}`);
+      router.push(`/tissues?organ=${encodeURIComponent(row.label)}`);
     }
   }
 
