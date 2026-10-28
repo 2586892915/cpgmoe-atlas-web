@@ -87,7 +87,7 @@ export function CinematicHero() {
           <span className="inline-flex items-center gap-2">
             <span className="h-1 w-1 rounded-full bg-[#E6B36F]" aria-hidden="true" />
             {IS_PILOT
-              ? "Pilot predictions · not measured methylation"
+              ? "3.0M cells · 2,093 groups"
               : "Synthetic demo · audit in progress"}
           </span>
           <span className="hidden flex-col items-center gap-1 text-[#8FA9FF]/70 sm:flex">

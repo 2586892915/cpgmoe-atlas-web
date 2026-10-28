@@ -6,7 +6,7 @@ import { IS_PILOT } from "@/lib/data-mode";
 import { listGroups, pilotRelease } from "@/lib/pilot";
 
 export const metadata: Metadata = {
-  title: "Groups",
+  title: "Cell types",
   description:
     "Tissue and cell-type groups profiled by the CPGMoE 3M-cell Full-S3 pilot.",
 };
@@ -73,7 +73,7 @@ export default async function GroupsPage({
       <div className="flex flex-col gap-3 border-b border-line pb-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[28px] font-semibold leading-tight text-ink">
-            Tissue × cell-type groups
+            Cell types &amp; tissues
           </h1>
           <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
             {pilotRelease.n_groups.toLocaleString("en-US")} groups with cell,

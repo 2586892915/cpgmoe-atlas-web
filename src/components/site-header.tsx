@@ -18,9 +18,8 @@ const BASE_LINKS = [
 
 const PRIMARY_LINKS = IS_PILOT
   ? [
-      { href: "/datasets", label: "Datasets" },
       { href: "/atlas", label: "Atlas" },
-      { href: "/groups", label: "Groups" },
+      { href: "/groups", label: "Cell types" },
       { href: "/browser", label: "Gene & CpG" },
       { href: "/compare", label: "Compare" },
       { href: "/downloads", label: "Downloads" },

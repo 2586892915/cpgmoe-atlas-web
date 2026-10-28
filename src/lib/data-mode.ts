@@ -36,9 +36,9 @@ export const ACTIVE_DATA_MODE: AtlasMode =
 export const IS_PILOT = ACTIVE_DATA_MODE === "pilot_predicted";
 
 export const MODE_BANNER = IS_PILOT
-  ? "Pilot predictions — not measured methylation"
+  ? "Pilot release"
   : "Demo environment — synthetic data only";
 
 export const MODE_BANNER_DETAIL = IS_PILOT
-  ? "3M-cell Full-S3 pilot · 512-CpG web panel"
+  ? "3.0M cells · 2,093 groups · 512 CpGs"
   : "Illustrative values only.";
