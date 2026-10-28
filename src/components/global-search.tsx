@@ -104,8 +104,11 @@ export function GlobalSearch({ autoFocus = false }: { autoFocus?: boolean }) {
             </button>
           </span>
         ))}
-        <span className="w-full text-[11px] text-ink-faint sm:w-auto">
-          GRCh38/hg38 · {IS_PILOT ? "512-CpG pilot panel" : "demo records only"}
+        <span className="w-full text-[11px] text-ink-faint sm:ml-1 sm:w-auto">
+          <span aria-hidden="true" className="mr-1.5 text-line-strong">
+            |
+          </span>
+          GRCh38/hg38 · {IS_PILOT ? "512-CpG panel" : "demo records only"}
         </span>
       </div>
       {error ? (
