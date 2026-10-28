@@ -109,14 +109,19 @@ export default async function GroupPage({
                 : "locus unavailable"}
               {cpg.genes ? ` · ${cpg.genes.split(";")[0]}` : ""}
             </span>
-            <span className="tabular text-[11px] text-ink md:text-right">
+            <span className="text-[10px] text-ink-faint md:hidden">
+              β {cpg.beta.toFixed(3)} · panel {cpg.reference.toFixed(3)} · Δ{" "}
+              {cpg.delta >= 0 ? "+" : ""}
+              {cpg.delta.toFixed(3)}
+            </span>
+            <span className="hidden tabular text-[11px] text-ink md:inline md:text-right">
               {cpg.beta.toFixed(3)}
             </span>
-            <span className="tabular text-[11px] text-ink-faint md:text-right">
+            <span className="hidden tabular text-[11px] text-ink-faint md:inline md:text-right">
               {cpg.reference.toFixed(3)}
             </span>
             <span
-              className={`tabular text-[11px] md:text-right ${
+              className={`hidden tabular text-[11px] md:inline md:text-right ${
                 cpg.delta >= 0 ? "text-primary" : "text-warm"
               }`}
             >

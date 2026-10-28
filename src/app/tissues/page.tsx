@@ -127,16 +127,23 @@ export default async function TissuesPage({
             <span className="truncate text-[12px] font-medium text-ink group-hover:text-primary">
               {tissue.tissue}
             </span>
-            <span className="truncate text-[11px] text-ink-soft">
+            <span className="text-[10px] text-ink-faint sm:hidden">
+              {humanize(tissue.organ_system)} · {tissue.n_groups} groups ·{" "}
+              {count(tissue.n_cells)} cells
+            </span>
+            <span className="hidden truncate text-[11px] text-ink-soft sm:inline">
               {humanize(tissue.organ_system)}
             </span>
-            <span className="tabular text-[11px] text-ink-soft sm:text-right">
+            <span className="hidden tabular text-[11px] text-ink-soft sm:inline sm:text-right">
               {tissue.n_groups}
             </span>
-            <span className="tabular text-[11px] text-ink-soft sm:text-right">
+            <span className="hidden tabular text-[11px] text-ink-soft sm:inline sm:text-right">
               {count(tissue.n_cells)}
             </span>
-            <ArrowRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden="true" />
+            <ArrowRight
+              className="hidden h-3.5 w-3.5 text-ink-faint sm:block"
+              aria-hidden="true"
+            />
           </Link>
         ))}
       </div>

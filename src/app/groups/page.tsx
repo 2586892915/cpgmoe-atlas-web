@@ -135,7 +135,7 @@ export default async function GroupsPage({
             }`}
             title={`${cells.toLocaleString("en-US")} cells`}
           >
-            {name}
+            {humanize(name)}
           </Link>
         ))}
         <Link
@@ -182,14 +182,21 @@ export default async function GroupsPage({
             <span className="truncate text-[12px] font-medium text-ink group-hover:text-primary">
               {group.cell_type}
             </span>
-            <span className="truncate text-[11px] text-ink-soft">{group.tissue}</span>
-            <span className="truncate text-[10px] text-ink-faint">
+            <span className="text-[10px] text-ink-faint md:hidden">
+              {group.tissue} · {humanize(group.organ_system)} ·{" "}
+              {group.n_cells.toLocaleString("en-US")} cells ·{" "}
+              {group.n_donors.toLocaleString("en-US")} donors
+            </span>
+            <span className="hidden truncate text-[11px] text-ink-soft md:inline">
+              {group.tissue}
+            </span>
+            <span className="hidden truncate text-[10px] text-ink-faint md:inline">
               {humanize(group.organ_system)}
             </span>
-            <span className="tabular text-[11px] text-ink-soft md:text-right">
+            <span className="hidden tabular text-[11px] text-ink-soft md:inline md:text-right">
               {group.n_cells.toLocaleString("en-US")}
             </span>
-            <span className="tabular text-[11px] text-ink-soft md:text-right">
+            <span className="hidden tabular text-[11px] text-ink-soft md:inline md:text-right">
               {group.n_donors}
             </span>
             <span className="flex items-center gap-2 md:justify-end">

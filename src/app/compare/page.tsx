@@ -136,7 +136,8 @@ export default async function ComparePage({
                     {group.cell_type}
                   </p>
                   <p className="mt-1 text-[10px] text-ink-faint">
-                    {group.n_cells.toLocaleString("en-US")} cells · {group.n_donors} donors ·{" "}
+                    {group.n_cells.toLocaleString("en-US")} cells ·{" "}
+                    {group.n_donors.toLocaleString("en-US")} donors ·{" "}
                     {group.n_datasets} {group.n_datasets === 1 ? "study" : "studies"}
                   </p>
                 </div>
@@ -198,14 +199,20 @@ export default async function ComparePage({
                       : "locus unavailable"}
                     {row.genes ? ` · ${row.genes.split(";")[0]}` : ""}
                   </span>
-                  <span className="tabular text-[11px] text-ink md:text-right">
+                  <span className="text-[10px] text-ink-faint md:hidden">
+                    β A {row.mean_beta_a.toFixed(3)} · β B{" "}
+                    {row.mean_beta_b.toFixed(3)} · Δ{" "}
+                    {row.delta_beta >= 0 ? "+" : ""}
+                    {row.delta_beta.toFixed(3)}
+                  </span>
+                  <span className="hidden tabular text-[11px] text-ink md:inline md:text-right">
                     {row.mean_beta_a.toFixed(3)}
                   </span>
-                  <span className="tabular text-[11px] text-ink md:text-right">
+                  <span className="hidden tabular text-[11px] text-ink md:inline md:text-right">
                     {row.mean_beta_b.toFixed(3)}
                   </span>
                   <span
-                    className={`tabular text-[11px] md:text-right ${
+                    className={`hidden tabular text-[11px] md:inline md:text-right ${
                       row.delta_beta >= 0 ? "text-primary" : "text-warm"
                     }`}
                   >

@@ -51,7 +51,7 @@ export default async function TissuePage({
         {[
           ["Cells", tissue.n_cells.toLocaleString("en-US")],
           ["Cell types", `${tissue.cell_types.length}`],
-          ["Donors (max)", `${tissue.n_donors}`],
+          ["Donors (max)", tissue.n_donors.toLocaleString("en-US")],
           ["Studies (max)", `${tissue.n_datasets}`],
         ].map(([label, value]) => (
           <div key={label} className="bg-white px-4 py-3">
@@ -89,16 +89,24 @@ export default async function TissuePage({
             <span className="truncate text-[12px] font-medium text-ink group-hover:text-primary">
               {group.cell_type}
             </span>
-            <span className="tabular text-[11px] text-ink-soft sm:text-right">
+            <span className="text-[10px] text-ink-faint sm:hidden">
+              {group.n_cells.toLocaleString("en-US")} cells ·{" "}
+              {group.n_donors.toLocaleString("en-US")} donors · {group.n_datasets}{" "}
+              {group.n_datasets === 1 ? "study" : "studies"}
+            </span>
+            <span className="hidden tabular text-[11px] text-ink-soft sm:inline sm:text-right">
               {group.n_cells.toLocaleString("en-US")}
             </span>
-            <span className="tabular text-[11px] text-ink-soft sm:text-right">
+            <span className="hidden tabular text-[11px] text-ink-soft sm:inline sm:text-right">
               {group.n_donors}
             </span>
-            <span className="tabular text-[11px] text-ink-soft sm:text-right">
+            <span className="hidden tabular text-[11px] text-ink-soft sm:inline sm:text-right">
               {group.n_datasets}
             </span>
-            <ArrowRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden="true" />
+            <ArrowRight
+              className="hidden h-3.5 w-3.5 text-ink-faint sm:block"
+              aria-hidden="true"
+            />
           </Link>
         ))}
       </div>
