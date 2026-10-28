@@ -113,6 +113,11 @@ All responses carry `data_mode: "pilot_predicted"`, `release_id`,
 The switch only changes which provider/pages are used. It never relabels stored
 values.
 
+In pilot mode `/datasets` and `/datasets/[id]` redirect to `/tissues`, so no
+synthetic catalogue page is reachable from the pilot site. The legacy
+`/api/v1/*` demo endpoints still exist for the Phase 0 contract but are not used
+by any pilot page.
+
 ## 9. Known gaps against the Phase 1 brief
 
 | Brief item | Status |

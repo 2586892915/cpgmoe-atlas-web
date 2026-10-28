@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowUpRight,
   Check,
@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { Badge, StatusBadge } from "@/components/ui/badge";
+import { IS_PILOT } from "@/lib/data-mode";
 import { getDemoDataset } from "@/mock/datasets";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -67,6 +68,7 @@ function Stage({
 }
 
 export default async function DatasetDetailPage({ params }: PageProps) {
+  if (IS_PILOT) redirect("/tissues");
   const { id } = await params;
   const dataset = getDemoDataset(id);
   if (!dataset) notFound();

@@ -54,8 +54,8 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | 路由 | 说明 |
 | --- | --- |
 | `/` | 首页：全局搜索、四个入口、审计占位指标、模型与证据边界 |
-| `/datasets` | 搜索、多选过滤、排序、分页的合成数据集表 |
-| `/datasets/[id]` | 数据集详情：元数据、阶段、QC、provenance、适用性与限制 |
+| `/datasets` | Phase 0 合成数据集表；pilot 模式下重定向到 `/tissues` |
+| `/datasets/[id]` | Phase 0 详情页；pilot 模式下重定向到 `/tissues` |
 | `/atlas` | 合成 UMAP、颜色映射、点选/框选、分组甲基化、Demo prediction API |
 | `/browser` | Gene / CpG probe / GRCh38 region 查询、基因示意、分布图、基因组轨道占位 |
 | `/compare` | 两组切换、群体均值、Δ 热图、无推断统计的边界声明 |

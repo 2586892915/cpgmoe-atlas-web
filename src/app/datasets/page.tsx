@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { DatasetExplorer } from "@/components/datasets/dataset-explorer";
 import { Badge } from "@/components/ui/badge";
 import { ATLAS_FACETS } from "@/lib/atlas-provider";
+import { IS_PILOT } from "@/lib/data-mode";
 import { DEMO_DATASETS } from "@/mock/datasets";
 
 export const metadata: Metadata = {
@@ -11,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default function DatasetsPage() {
+  if (IS_PILOT) redirect("/tissues");
   return (
     <div className="shell py-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
