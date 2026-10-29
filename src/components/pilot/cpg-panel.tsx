@@ -26,6 +26,7 @@ function beta(value: number) {
 }
 
 function variance(value: number) {
+  if (value === 0) return "0.0000";
   return value >= 0.001 ? value.toFixed(4) : value.toExponential(1);
 }
 
