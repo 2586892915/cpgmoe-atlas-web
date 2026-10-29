@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { humanize } from "@/lib/format";
 import {
   getTissue,
-  pilotRelease,
-  tissueCpgs,
   tissueGroups,
 } from "@/lib/pilot";
+import { getProbe } from "@/lib/probes";
+import { getTissueSignature } from "@/lib/signatures";
 
 export const metadata: Metadata = {
   title: "Tissue detail",
@@ -25,7 +25,18 @@ export default async function TissuePage({
   const tissue = getTissue(name);
   if (!tissue) notFound();
   const groups = tissueGroups(name);
-  const cpgs = tissueCpgs(name, 16);
+  const signature = getTissueSignature(tissue.tissue);
+  const cpgs = (signature?.top ?? []).slice(0, 16).map((entry) => {
+    const probe = getProbe(entry.cpg_id);
+    return {
+      cpg_id: entry.cpg_id,
+      gene: entry.gene,
+      chr: probe?.chr ?? null,
+      pos: probe?.pos ?? null,
+      mean: entry.beta,
+      delta: entry.delta,
+    };
+  });
 
   return (
     <div className="shell py-8">
@@ -43,7 +54,6 @@ export default async function TissuePage({
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Badge tone="neutral">{tissue.n_groups} cell-type groups</Badge>
-          <Badge tone="neutral">{pilotRelease.release_id}</Badge>
         </div>
       </div>
 
@@ -109,7 +119,7 @@ export default async function TissuePage({
         <div>
           <p className="micro-label">Tissue-level CpG shifts</p>
           <p className="mt-1 text-[11px] text-ink-faint">
-            Weighted mean over this tissue, ranked by |Δβ| vs the pan-panel mean.
+            Full 485,403-CpG panel · ranked by |Δβ| vs the pan-panel mean.
           </p>
         </div>
       </div>
@@ -131,7 +141,7 @@ export default async function TissuePage({
               {cpg.chr && cpg.pos !== null
                 ? `${cpg.chr}:${cpg.pos.toLocaleString("en-US")}`
                 : "locus unavailable"}
-              {cpg.genes ? ` · ${cpg.genes.split(";")[0]}` : ""}
+              {cpg.gene ? ` · ${cpg.gene}` : ""}
             </span>
             <span className="tabular text-[11px] text-ink sm:text-right">
               {cpg.mean.toFixed(3)}

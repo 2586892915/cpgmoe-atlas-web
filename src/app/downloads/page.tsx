@@ -3,13 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   Code2,
-  Database,
   Download,
   ExternalLink,
-  FileJson,
   Info,
-  Lock,
-  Table2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { IS_PILOT } from "@/lib/data-mode";
@@ -20,37 +16,6 @@ export const metadata: Metadata = {
   description:
     "Planned download products and the demo API contract for the CPGMoE Atlas Phase 0 prototype.",
 };
-
-const DOWNLOADS = [
-  {
-    icon: Database,
-    title: "Dataset metadata",
-    format: "TSV · one row per dataset",
-    description:
-      "Fields: dataset_id, tissue, disease, assay, status, evidence tier, licence status, audited cell count.",
-    reason: IS_PILOT
-      ? "Pilot aggregates are downloadable above; the audited catalogue is still pending."
-      : "No production catalogue has been released. The audit is in progress.",
-  },
-  {
-    icon: Table2,
-    title: "Predicted CpG group summary",
-    format: "Parquet · dataset × group × CpG",
-    description:
-      "Group-level predicted beta with cell counts, model/checkpoint hash, and provenance identifiers.",
-    reason: IS_PILOT
-      ? "Only the 512-CpG slice is published; the full 485,403 × 2,093 matrix is not."
-      : "No production predictions available yet. No checkpoint has been run.",
-  },
-  {
-    icon: FileJson,
-    title: "Selected cell × CpG matrix",
-    format: "CSV/Parquet · on demand",
-    description:
-      "Requested from a selection, capped and queued. Never a full atlas dump from the browser.",
-    reason: "Per-cell predictions and raw RNA stay closed in every mode.",
-  },
-];
 
 const FIELDS = [
   ["dataset_id", "string", "Stable dataset identifier; demo IDs start with DEMO_.", "No"],
@@ -172,38 +137,6 @@ export default function DownloadsPage() {
           </div>
         </section>
       ) : null}
-
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        {DOWNLOADS.map((product) => {
-          const Icon = product.icon;
-          return (
-            <section key={product.title} className="panel flex flex-col p-4">
-              <div className="flex items-start justify-between gap-2">
-                <span className="flex h-8 w-8 items-center justify-center border border-line bg-paper-tint text-ink-soft">
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-                <Badge tone="muted">Planned</Badge>
-              </div>
-              <h2 className="mt-3 text-[14px] font-semibold text-ink">{product.title}</h2>
-              <p className="mono mt-0.5 text-[10px] text-ink-faint">{product.format}</p>
-              <p className="mt-2 text-[12px] leading-relaxed text-ink-soft">{product.description}</p>
-              <div className="mt-3 flex items-start gap-1.5 border border-line bg-paper-tint px-2 py-1.5 text-[10px] leading-relaxed text-ink-faint">
-                <Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-                {product.reason}
-              </div>
-              <button
-                type="button"
-                className="btn mt-3 w-full"
-                disabled
-                title="Not available in this release"
-              >
-                <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                Download unavailable
-              </button>
-            </section>
-          );
-        })}
-      </div>
 
       <section className="mt-8" aria-labelledby="api-heading">
         <div className="flex flex-wrap items-end justify-between gap-2">

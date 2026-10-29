@@ -1,13 +1,10 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CinematicHero } from "@/components/home/cinematic-hero";
-import { VisualTeaser } from "@/components/home/visual-teaser";
 import { GlobalSearch } from "@/components/global-search";
-import { StatusBadge } from "@/components/ui/badge";
+import { count } from "@/lib/format";
 import { IS_PILOT } from "@/lib/data-mode";
-import { count, humanize } from "@/lib/format";
-import { listTissues, pilotHeatmap, pilotRelease } from "@/lib/pilot";
-import { DEMO_DATASETS } from "@/mock/datasets";
+import { pilotHeatmap, pilotRelease } from "@/lib/pilot";
 
 const TOOLS = IS_PILOT
   ? [
@@ -45,13 +42,10 @@ const ORGAN_LABELS: Record<string, string> = {
 
 function pretty(value: string) {
   if (ORGAN_LABELS[value]) return ORGAN_LABELS[value];
-  return value
-    .replace(/_/g, " ")
-    .replace(/^./, (character) => character.toUpperCase());
+  return value.replace(/_/g, " ").replace(/^./, (character) => character.toUpperCase());
 }
 
 export default function HomePage() {
-  const largestTissues = IS_PILOT ? listTissues().slice(0, 6) : [];
   const organs = IS_PILOT ? pilotHeatmap().organ_systems : [];
 
   return (
@@ -146,7 +140,7 @@ export default function HomePage() {
                 className="group bg-white px-4 py-4 transition-colors hover:bg-[#F7FAFE]"
               >
                 <p className="tabular text-[10px] text-ink-faint">
-                  {organ.n_groups} groups · {organ.n_cells.toLocaleString("en-US")} cells
+                  {organ.n_groups} groups · {count(organ.n_cells)} cells
                 </p>
                 <p className="mt-1 text-[14px] font-medium text-ink group-hover:text-primary">
                   {pretty(organ.label)}
@@ -157,114 +151,8 @@ export default function HomePage() {
         </section>
       ) : null}
 
-      <section className="shell pb-14">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="font-serif text-[30px] leading-tight text-[#0B2A6F] sm:text-[38px]">
-            {IS_PILOT ? "Largest tissues" : "Featured datasets"}
-          </h2>
-          <Link
-            className="btn btn-secondary shrink-0"
-            href={IS_PILOT ? "/tissues" : "/datasets"}
-          >
-            {IS_PILOT
-              ? `All ${pilotRelease.n_tissues} tissues`
-              : "All 12 datasets"}
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
-        </div>
-
-        {IS_PILOT ? (
-          <div className="mt-6 border-y border-line">
-            <div className="hidden grid-cols-[1.6fr_1.2fr_0.5fr_0.6fr_auto] gap-4 px-2 py-2 text-[10px] uppercase text-ink-faint sm:grid">
-              <span>Tissue</span>
-              <span>Organ system</span>
-              <span>Cell types</span>
-              <span>Cells</span>
-              <span />
-            </div>
-            {largestTissues.map((tissue) => (
-              <Link
-                key={tissue.tissue}
-                href={`/tissues/${encodeURIComponent(tissue.tissue)}`}
-                className="group grid gap-2 border-t border-line px-2 py-4 transition-colors hover:bg-[#F7FAFE] sm:grid-cols-[1.6fr_1.2fr_0.5fr_0.6fr_auto] sm:items-center sm:gap-4"
-              >
-                <p className="truncate text-[14px] font-medium text-ink group-hover:text-primary">
-                  {tissue.tissue}
-                </p>
-                <p className="truncate text-[12px] text-ink-soft">
-                  {humanize(tissue.organ_system)}
-                </p>
-                <p className="tabular text-[12px] text-ink-soft">{tissue.n_groups}</p>
-                <p className="tabular text-[12px] text-ink-soft">
-                  {count(tissue.n_cells)}
-                </p>
-                <div className="flex items-center justify-end">
-                  <ArrowRight
-                    className="h-4 w-4 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
-                    aria-hidden="true"
-                  />
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="mt-6 border-y border-line">
-              <div className="hidden grid-cols-[1.7fr_1fr_0.6fr_auto] gap-4 px-2 py-2 text-[10px] uppercase text-ink-faint sm:grid">
-                <span>Dataset</span>
-                <span>Tissue / disease</span>
-                <span>Cells</span>
-                <span className="text-right">Stage</span>
-              </div>
-              {DEMO_DATASETS.slice(0, 4).map((dataset) => (
-                <Link
-                  key={dataset.dataset_id}
-                  href={`/datasets/${dataset.dataset_id}`}
-                  className="group grid gap-2 border-t border-line px-2 py-4 transition-colors hover:bg-[#F7FAFE] sm:grid-cols-[1.7fr_1fr_0.6fr_auto] sm:items-center sm:gap-4"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-[14px] font-medium text-ink group-hover:text-primary">
-                      {dataset.title}
-                    </p>
-                    <p className="mono mt-0.5 text-[10px] text-ink-faint">
-                      {dataset.dataset_id}
-                    </p>
-                  </div>
-                  <div className="text-[12px] text-ink-soft">
-                    <span>{dataset.tissue}</span>
-                    <span className="text-ink-faint"> · {dataset.disease}</span>
-                  </div>
-                  <div className="tabular text-[12px] text-ink-soft">
-                    ≈{dataset.n_cells?.toLocaleString("en-US")}
-                    <span className="text-ink-faint">*</span>
-                  </div>
-                  <div className="flex items-center gap-3 sm:justify-end">
-                    <StatusBadge status={dataset.status} />
-                    <ArrowRight
-                      className="h-4 w-4 text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
-                      aria-hidden="true"
-                    />
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <p className="mt-2 text-[10px] text-ink-faint">
-              * Illustrative counts, not audited data.
-            </p>
-          </>
-        )}
-      </section>
-
-      {!IS_PILOT ? (
-        <section className="border-y border-[#D8E3F3] bg-[#F7FAFE]">
-          <div className="shell py-12">
-            <VisualTeaser />
-          </div>
-        </section>
-      ) : null}
-
       {IS_PILOT ? (
-        <div className="shell flex flex-wrap items-center justify-between gap-2 border-b border-line py-3 text-[10px] text-ink-faint">
+        <div className="shell flex flex-wrap items-center justify-between gap-2 border-t border-line py-3 text-[10px] text-ink-faint">
           <span>Release {pilotRelease.release_id}</span>
           <span>
             Updated {pilotRelease.generated_at} · {pilotRelease.n_profiled_cpgs} CpGs ·{" "}
@@ -292,11 +180,11 @@ export default function HomePage() {
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
-              href={IS_PILOT ? "/browser" : "/datasets"}
+              href="/browser"
               className="inline-flex h-11 items-center gap-2 border border-white/20 px-5 text-[13px] font-medium text-[#DCE7FF] transition-colors hover:bg-white/[0.06]"
               style={{ borderRadius: 3 }}
             >
-              {IS_PILOT ? "Search a CpG" : "Browse datasets"}
+              Search a CpG
             </Link>
           </div>
         </div>

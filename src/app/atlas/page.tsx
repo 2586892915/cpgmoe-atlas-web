@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { AtlasExplorer } from "@/components/atlas/atlas-explorer";
 import { PilotHeatmap } from "@/components/pilot/pilot-heatmap";
 import { Badge } from "@/components/ui/badge";
@@ -38,30 +36,8 @@ export default async function AtlasPage({
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Badge tone="warm" dot>
-              Pilot release
-            </Badge>
-            <Badge tone="neutral">
-              {pilotRelease.n_groups.toLocaleString("en-US")} groups
-            </Badge>
             <Badge tone="neutral">{pilotRelease.n_profiled_cpgs} CpGs</Badge>
           </div>
-        </div>
-
-        <div className="mt-5 grid gap-px border border-line bg-line sm:grid-cols-4">
-          {[
-            ["Pilot cells", pilotRelease.n_cells_pilot.toLocaleString("en-US")],
-            ["Cells in groups", pilotRelease.n_cells_in_groups.toLocaleString("en-US")],
-            ["Tissues", `${pilotRelease.n_tissues}`],
-            ["Cell types", `${pilotRelease.n_cell_types}`],
-          ].map(([label, value]) => (
-            <div key={label} className="bg-white px-4 py-3">
-              <p className="text-[9px] uppercase text-ink-faint">{label}</p>
-              <p className="tabular mt-1 font-serif text-[24px] leading-none text-[#156E86]">
-                {value}
-              </p>
-            </div>
-          ))}
         </div>
 
         <div className="panel mt-5 p-4 sm:p-5">
@@ -75,20 +51,6 @@ export default async function AtlasPage({
           />
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-4 text-[12px]">
-          <Link href="/browser" className="link-quiet inline-flex items-center gap-1">
-            Open the CpG browser
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
-          <Link href="/tissues" className="link-quiet inline-flex items-center gap-1">
-            Browse tissues
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
-          <Link href="/compare" className="link-quiet inline-flex items-center gap-1">
-            Compare two groups
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
-        </div>
       </div>
     );
   }

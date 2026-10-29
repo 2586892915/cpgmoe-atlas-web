@@ -65,6 +65,7 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | `/groups/[id]` | 单组详情：支持度、候选 signature CpG、跳转 Browser/Compare |
 | `/tissues` | 组织目录：搜索、器官筛选、组数/细胞数 |
 | `/tissues/[id]` | 组织详情：细胞类型构成、支持度、组织级 CpG 偏移 |
+| `/cell-types/[id]` | 细胞类型详情：支持度 + 全量面板上 top 40 预测偏移 CpG |
 | `/downloads` | 禁用中的计划下载产品、字段字典、API 契约 |
 | `/methods` | 方法、语义、评估边界、坐标约定、生命周期与治理 |
 | `/about` | 定位、数据政策、引用与联系方式占位 |

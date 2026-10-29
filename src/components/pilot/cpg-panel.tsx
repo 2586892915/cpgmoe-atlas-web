@@ -148,15 +148,13 @@ export function CpgPanel({ cpgId }: { cpgId: string | null }) {
         ) : null}
       </div>
 
-      <dl className="mt-4 grid grid-cols-3 gap-px border border-line bg-line text-[11px]">
+      <dl className="mt-4 grid grid-cols-2 gap-px border border-line bg-line text-[11px]">
         {(detail.group_level_available
           ? [
               ["mean β", beta(stats?.mean ?? 0)],
               ["median", beta(stats?.median ?? 0)],
               ["range", `${beta(stats?.min ?? 0)}–${beta(stats?.max ?? 0)}`],
               ["tissue × type", `${detail.n_groups}`],
-              ["high conf.", `${detail.high_confidence_groups}`],
-              ["slot", `${cpg.panel_slot} / 512`],
             ]
           : [
               ["global mean β", beta(detail.probe?.global_mean_beta ?? 0)],
@@ -166,8 +164,6 @@ export function CpgPanel({ cpgId }: { cpgId: string | null }) {
                 `${((detail.probe?.celltype_variance_fraction ?? 0) * 100).toFixed(1)}%`,
               ],
               ["cell types", `${fullCount}`],
-              ["tissue × type", "not in slice"],
-              ["panel", "485,403"],
             ]
         ).map(([label, value]) => (
           <div key={label} className="bg-white px-2.5 py-2">

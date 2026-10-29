@@ -88,10 +88,6 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <span className="ml-2 hidden items-center gap-1.5 border border-warm/30 bg-warm-wash px-2 py-1 text-[11px] font-medium text-warm sm:inline-flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-warm" aria-hidden="true" />
-            {IS_PILOT ? "Pilot release" : "Audit in progress"}
-          </span>
           <button
             type="button"
             className="btn btn-quiet -mr-2 h-10 w-10 px-0 lg:hidden"

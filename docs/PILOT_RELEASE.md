@@ -75,6 +75,10 @@ Full-panel group means are served from the GitHub release
 offset = `panel_index × n_groups`). The app reads single records with HTTP
 Range requests and caches them in memory.
 
+`signatures.json` (2.1 MB) is derived from the same matrices: for every cell
+type and tissue, the top 40 CpGs by |β − panel mean| among CpGs with variance
+≥ 0.005. It powers `/cell-types/[id]` and the tissue-level CpG table.
+
 ## 6. Rebuilding
 
 Inputs (aggregated tables from the offline 3M run):

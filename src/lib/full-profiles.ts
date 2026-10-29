@@ -49,8 +49,14 @@ export function fullGroups(level: FullLevel): FullGroup[] {
 }
 
 export function fullMeta(level: FullLevel) {
-  const { groups: _groups, ...rest } = META[level];
-  return rest;
+  const meta = META[level];
+  return {
+    level: meta.level,
+    n_groups: meta.n_groups,
+    n_cpgs: meta.n_cpgs,
+    scale: meta.scale,
+    sha256: meta.sha256,
+  };
 }
 
 const cache = new Map<string, number[]>();

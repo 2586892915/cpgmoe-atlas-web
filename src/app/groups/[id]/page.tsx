@@ -55,7 +55,6 @@ export default async function GroupPage({
               Exploratory support
             </Badge>
           )}
-          <Badge tone="neutral">{pilotRelease.release_id}</Badge>
         </div>
       </div>
 

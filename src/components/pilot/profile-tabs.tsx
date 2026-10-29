@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { PilotCpgStat, PilotGroup } from "@/lib/pilot";
@@ -14,6 +15,7 @@ type ProfileRow = {
   n_cells?: number;
   n_donors?: number;
   n_datasets?: number;
+  href?: string;
 };
 
 type ApiItem = {
@@ -103,6 +105,7 @@ export function ProfileTabs({
           n_cells: entry.group.n_cells,
           n_donors: entry.group.n_donors,
           n_datasets: entry.group.n_datasets,
+          href: `/groups/${entry.group.group_id}`,
         }))
       : pool
           .map((item) => ({ ...item, delta: item.beta - mean }))
@@ -114,6 +117,12 @@ export function ProfileTabs({
             n_cells: item.n_cells,
             n_donors: item.n_donors,
             n_datasets: item.n_datasets,
+            href:
+              level === "celltype"
+                ? `/cell-types/${item.group_index}`
+                : level === "tissue"
+                  ? `/tissues/${encodeURIComponent(item.label)}`
+                  : `/tissues?organ=${encodeURIComponent(item.label)}`,
           }));
 
   const max = bins.length ? Math.max(...bins) : 0;
@@ -189,8 +198,9 @@ export function ProfileTabs({
             {top.length === 0 ? (
               <p className="py-3 text-[11px] text-ink-faint">No values for this view.</p>
             ) : (
-              top.map((row) => (
-                <div key={row.label} className="py-2">
+              top.map((row) => {
+                const content = (
+                  <>
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="min-w-0 truncate text-[12px] text-ink">
                       {row.label}
@@ -211,8 +221,22 @@ export function ProfileTabs({
                       style={{ width: `${Math.min(100, row.beta * 100)}%` }}
                     />
                   </div>
-                </div>
-              ))
+                  </>
+                );
+                return row.href ? (
+                  <Link
+                    key={row.label}
+                    href={row.href}
+                    className="block py-2 transition-colors hover:bg-paper-tint"
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={row.label} className="py-2">
+                    {content}
+                  </div>
+                );
+              })
             )}
           </div>
         </>

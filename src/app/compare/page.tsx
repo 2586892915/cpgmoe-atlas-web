@@ -8,7 +8,6 @@ import {
   getGroup,
   highVarianceCpgs,
   listGroups,
-  pilotRelease,
 } from "@/lib/pilot";
 import { DEMO_CELLS } from "@/mock/cells";
 import { DEMO_DATASETS } from "@/mock/datasets";
@@ -69,7 +68,6 @@ export default async function ComparePage({
             <Badge tone="warm" dot>
               No inferential statistics
             </Badge>
-            <Badge tone="neutral">{pilotRelease.release_id}</Badge>
           </div>
         </div>
 
