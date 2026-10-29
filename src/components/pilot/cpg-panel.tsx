@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ProfileTabs } from "@/components/pilot/profile-tabs";
-import type { PilotCpg, PilotCpgStat, PilotGroup } from "@/lib/pilot";
+import type { PilotCpg, PilotCpgStat } from "@/lib/pilot";
 
 type FullLevel = { id: "celltype" | "tissue" | "organ"; label: string; n_groups: number };
 
@@ -20,7 +20,6 @@ type CpgDetail = {
   };
   n_groups: number;
   high_confidence_groups: number;
-  top_groups: { group: PilotGroup; beta: number; delta: number }[];
   coverage_note: string | null;
 };
 
@@ -173,20 +172,12 @@ export function CpgPanel({ cpgId }: { cpgId: string | null }) {
         ))}
       </dl>
 
-      <ProfileTabs
-        cpgId={cpg.cpg_id}
-        detail={{
-          stats,
-          group_level_available: detail.group_level_available,
-          n_groups: detail.n_groups,
-          top_groups: detail.top_groups,
-        }}
-        levels={detail.full_levels}
-      />
+      <ProfileTabs cpgId={cpg.cpg_id} levels={detail.full_levels} />
 
       <p className="mt-4 flex items-start gap-1.5 text-[10px] leading-relaxed text-ink-faint">
         <ArrowUpRight className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-        {detail.coverage_note ?? "Predicted β · full-panel profiles by cell type, tissue and organ."}
+        {detail.coverage_note ??
+          "Predicted β · full-panel profiles by cell type, tissue, organ and tissue × cell type."}
       </p>
     </div>
   );

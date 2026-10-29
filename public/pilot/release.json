@@ -12,6 +12,7 @@
   "n_cell_types": 435,
   "n_organ_systems": 16,
   "n_panel_probes": 485403,
+  "n_full_profile_cpgs": 485403,
   "n_profiled_cpgs": 512,
   "aggregation": "mean_of_single_cell_predictions_per_tissue_x_cell_type",
   "checkpoint": {
@@ -20,5 +21,5 @@
     "sha256": "1f1fcfce618ba29299f1ff31dd4892af0af73ec4e1e4767e47404effed5ec7ea",
     "config_sha256": "b0b5ebb1e447127023fb71765be4e893aa051f2933063560173adc7766acef72"
   },
-  "caveat": "Predicted DNA methylation from Full-S3, aggregated by tissue and cell type. Not measured methylation. Pilot release covering 512 high-variance panel CpGs; the final pan-human atlas is not released."
+  "caveat": "Predicted DNA methylation from Full-S3, aggregated by tissue and cell type. Not measured methylation. Full-panel profiles cover 485,403 CpGs across 569 cell types, 207 tissues, 16 organ systems and 2,093 tissue × cell-type groups; the final pan-human atlas is not released."
 }

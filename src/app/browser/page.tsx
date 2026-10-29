@@ -52,8 +52,7 @@ export default async function BrowserPage({
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
               Search all {PROBE_COUNT.toLocaleString("en-US")} probes. Predicted β
-              is available by cell type, tissue and organ; tissue × cell type
-              covers {PROFILED_COUNT} CpGs.
+              is available by cell type, tissue, organ and tissue × cell type.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">

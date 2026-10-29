@@ -19,7 +19,11 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const level = (searchParams.get("level") ?? "celltype") as FullLevel;
   if (!FULL_LEVELS.some((entry) => entry.id === level)) {
-    return pilotError("invalid_level", "level must be celltype, tissue or organ.", 400);
+    return pilotError(
+      "invalid_level",
+      "level must be celltype, tissue, organ or tissue_celltype.",
+      400,
+    );
   }
   const probe = getProbe(id);
   if (!probe) {

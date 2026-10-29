@@ -24,12 +24,21 @@ Status: **research preview (pilot)**. Not the final pan-human atlas.
 | Cell types | 435 | |
 | Panel probes predicted | 485,403 | full panel produced offline |
 | Indexed for search | 485,403 | hg38 coordinates, gene, island, global mean/variance |
-| CpGs in the web slice | 512 | pre-declared high-variance panel |
-| Full-panel profiles | 569 cell types / 207 tissues / 16 organs × 485,403 CpGs | uint8, CpG-major |
+| CpGs in the candidate slice | 512 | pre-declared high-variance panel, used for group ranking and downloads |
+| Full-panel profiles | 569 cell types / 207 tissues / 16 organs / 2,093 tissue × cell-type groups, each × 485,403 CpGs | uint8, CpG-major |
 | Annotated CpGs | 512 | hg38 coordinate + island/gene/promoter |
 
 All values are **predicted** by Full-S3 and aggregated offline. No measured
 methylation is shown.
+
+### Aggregate validation
+
+- All 512 high-variance CpGs were compared against the float reference:
+  max absolute quantization error **0.00196**, mean **0.00098**.
+- Cell-weighted group means vs global CpG means: max absolute difference
+  **0.00077**.
+- `tissue_celltype_mean_u8.bin` SHA-256:
+  `3a835513ce1bed85750e261a2afc663eba2d8c71efdbc8761bac4d24f687f55a`.
 
 ## 3. Checkpoint provenance
 
@@ -47,8 +56,8 @@ The website never executes inference. It consumes aggregates only.
 - per-cell predictions (the 3M × 512 matrix is not shipped)
 - raw single-cell RNA
 - donor-level rows or donor identifiers
-- the full 485,403 × 2,093 aggregate matrix
-- CpGs outside the 512-CpG high-variance panel
+- per-group raw float matrices (the published matrix is uint8-quantised)
+- full-panel CpG rankings for groups beyond the published top 30
 - statistical tests (no independent-replicate model)
 - clinical, causal or regulatory claims
 
@@ -71,13 +80,17 @@ Generated into `src/data/pilot/` by `scripts/pilot/build_pilot_bundle.py`:
 Total ≈ 5 MB, server-side only. Client bundles receive only the current view.
 
 Full-panel group means are served from the GitHub release
-`pilot-full450k-v1` (celltype 276 MB, tissue 100 MB, organ 7.8 MB; uint8,
-offset = `panel_index × n_groups`). The app reads single records with HTTP
-Range requests and caches them in memory.
+`pilot-full450k-v1` (celltype 276 MB, tissue 96 MB, organ 7.5 MB,
+tissue × cell type 1.0 GB; uint8, offset = `panel_index × n_groups`). The app
+reads single records with HTTP Range requests and caches them in memory.
 
 `signatures.json` (2.1 MB) is derived from the same matrices: for every cell
 type and tissue, the top 40 CpGs by |β − panel mean| among CpGs with variance
 ≥ 0.005. It powers `/cell-types/[id]` and the tissue-level CpG table.
+
+`full/group_top_cpgs.json` stores the top 30 CpGs per tissue × cell-type group
+across all 485,403 CpGs, ranked by |β − panel mean|. It powers the group pages
+and replaces the old 512-CpG-only ranking.
 
 ## 6. Rebuilding
 
@@ -106,8 +119,9 @@ guess missing fields or paths.
 | GET | `/api/v1/pilot/release` | release identity + counts |
 | GET | `/api/v1/pilot/search?q=` | gene / probe / hg38 interval / group |
 | GET | `/api/v1/pilot/cpgs/{cpg_id}` | annotation, stats, top groups |
+| GET | `/api/v1/pilot/cpgs/{cpg_id}/profiles?level=` | full-panel profile by `celltype`, `tissue_celltype`, `tissue` or `organ` |
 | GET | `/api/v1/pilot/groups` | list + filters (`q`, `tissue`, `cell_type`, `organ_system`, `high_confidence`) |
-| GET | `/api/v1/pilot/groups/{id}` | group detail + top CpGs |
+| GET | `/api/v1/pilot/groups/{id}` | group detail + full-panel top CpGs |
 | GET | `/api/v1/pilot/heatmap` | organ-system and top-group matrices |
 | POST | `/api/v1/pilot/compare` | `{ group_a, group_b, cpg_ids[] }` → Δβ |
 
@@ -133,12 +147,12 @@ by any pilot page.
 
 | Brief item | Status |
 | --- | --- |
-| Query a real gene / probe / interval | Done for the 512-CpG panel (182 genes annotated) |
-| Group-level β with support counts | Done (2,093 groups, 512 CpGs) |
+| Query a real gene / probe / interval | Done for all 485,403 probes |
+| Group-level β with support counts | Done (2,093 groups; 512-CpG candidate slice with supports, full-panel profiles by four levels) |
 | Cell Type Atlas / Tissue Explorer | Tissue-first: `/tissues` + `/tissues/[id]`; `/groups/[id]` keeps single-group detail |
 | Atlas as heatmap-first | Done (`/atlas`) |
 | Compare with effect sizes | Done (Δβ only, no p-values) |
-| Full 485,403-probe browser | Search, annotation and full-panel cell-type/tissue/organ β done |
-| Tissue × cell type at full panel | Still 512 CpGs only (2,093 combinations) |
+| Full 485,403-probe browser | Search, annotation and full-panel β by cell type, tissue, organ and tissue × cell type |
+| Tissue × cell type at full panel | Done (2,093 groups × 485,403 CpGs) |
 | TP53 example | Available with full-panel β (39 probes) |
-| Downloads | Done — `/downloads` serves groups.csv, cpgs.csv, cpg_stats.csv, heatmap_organ_systems.csv, release.json |
+| Downloads | Done — `/downloads` serves pilot tables plus the full-panel uint8 release |

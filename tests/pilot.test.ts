@@ -178,8 +178,9 @@ describe("full-panel probe index", () => {
 });
 
 describe("full-panel profile store", () => {
-  it("exposes cell type, tissue and organ levels", () => {
-    expect(FULL_LEVELS.map((level) => level.n_groups)).toEqual([569, 207, 16]);
+  it("exposes cell type, tissue, organ and tissue x cell-type levels", () => {
+    expect(FULL_LEVELS.map((level) => level.n_groups)).toEqual([569, 2093, 207, 16]);
+    expect(fullGroups("tissue_celltype")).toHaveLength(2093);
     expect(fullGroups("organ")).toHaveLength(16);
   });
 

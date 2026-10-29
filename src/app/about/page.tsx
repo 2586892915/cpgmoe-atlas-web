@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Scope, data policies, and citation placeholders for the CPGMoE Atlas Phase 0 prototype.",
+    "Scope, data policies, and citation placeholders for the CPGMoE Atlas pilot.",
 };
 
 export default function AboutPage() {
@@ -16,13 +16,13 @@ export default function AboutPage() {
           A predicted methylation atlas, not a measurement archive
         </h1>
         <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-          A Phase 0 interface prototype for predicted single-cell methylation,
-          built to fix the data contracts before audited data is connected.
+          A pilot portal for predicted single-cell methylation, built on the
+          3M-cell Full-S3 aggregate.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Badge tone="primary" dot>Phase 0 prototype</Badge>
+          <Badge tone="primary" dot>Pilot release</Badge>
           <Badge tone="warm" dot>Research use only</Badge>
-          <Badge tone="neutral">Synthetic demo data</Badge>
+          <Badge tone="neutral">Predicted, not measured</Badge>
         </div>
       </div>
 
@@ -43,11 +43,11 @@ export default function AboutPage() {
           <section className="border-t border-line py-6">
             <h2 className="text-[18px] font-semibold text-ink">Scope of this build</h2>
             <p className="mt-2 text-[13px] leading-relaxed text-ink-soft">
-              The current site does not read human scRNA files, run model
-              inference, generate methylation atlases, or operate a production
-              cell database. It runs entirely on synthetic demo records and
-              exposes the planned API contract with runtime validation and
-              explicit demo flags.
+              The current site does not read raw human scRNA files at runtime,
+              run model inference, or expose per-cell predictions. It serves
+              offline aggregates for 3M cells, 2,093 tissue × cell-type groups
+              and all 485,403 panel CpGs. Per-cell, donor-level and raw
+              expression data remain closed.
             </p>
           </section>
 
@@ -58,7 +58,7 @@ export default function AboutPage() {
               <li>No dataset is marked public until audit-reviewed licence and provenance metadata exist.</li>
               <li>Production counts remain null until independently audited; file-level records are not independent cells.</li>
               <li>Prediction values retain a provenance identifier that links model, checkpoint, input, and audit state.</li>
-              <li>Uploads, accounts, and user-triggered GPU inference are out of scope for Phase 0.</li>
+              <li>Uploads, accounts, and user-triggered GPU inference are out of scope.</li>
             </ul>
           </section>
 
@@ -95,8 +95,10 @@ export default function AboutPage() {
                 ["Training domain", "TCGA bulk multi-omics"],
                 ["Target space", "Illumina 450K panel"],
                 ["Genome build", "GRCh38 / hg38"],
-                ["Data mode", "Synthetic demo"],
-                ["Audit state", "In progress"],
+                ["Data mode", "Pilot predicted"],
+                ["Cells", "3,000,000"],
+                ["Groups", "2,093"],
+                ["CpGs", "485,403"],
               ].map(([label, value]) => (
                 <div key={label} className="py-2">
                   <dt className="text-[10px] uppercase text-ink-faint">{label}</dt>
@@ -110,7 +112,7 @@ export default function AboutPage() {
             <ul className="mt-2 grid gap-1.5">
               <li><Link className="link-quiet" href="/methods">Methods &amp; limitations</Link></li>
               <li><Link className="link-quiet" href="/downloads">Downloads &amp; API</Link></li>
-              <li><Link className="link-quiet" href="/datasets">Synthetic datasets</Link></li>
+              <li><Link className="link-quiet" href="/tissues">Tissue atlas</Link></li>
             </ul>
           </div>
         </aside>

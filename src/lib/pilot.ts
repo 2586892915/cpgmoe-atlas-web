@@ -98,7 +98,8 @@ export function pilotEnvelope() {
     provenance_status: releaseData.provenance_status,
     counts_qualification: {
       cells: "3M-cell Full-S3 pilot; 2.93M cells fall inside the 2,093 profiled groups",
-      profiled_cpgs: `${releaseData.n_profiled_cpgs} of ${releaseData.n_panel_probes} panel probes`,
+      profiled_cpgs: `${releaseData.n_full_profile_cpgs} of ${releaseData.n_panel_probes} panel probes have full profiles`,
+      candidate_slice: `${releaseData.n_profiled_cpgs} high-variance CpGs`,
       aggregation: releaseData.aggregation,
     },
   };

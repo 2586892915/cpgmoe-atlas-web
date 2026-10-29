@@ -24,7 +24,7 @@ const TOOLS = IS_PILOT
 const METRICS = IS_PILOT
   ? [
       { value: "3.0M", label: "cells" },
-      { value: "2,093", label: "cell-type groups" },
+      { value: "2,093", label: "tissue × cell-type groups" },
       {
         value: `${FULL_LEVELS.find((level) => level.id === "celltype")?.n_groups ?? 569}`,
         label: "cell types",

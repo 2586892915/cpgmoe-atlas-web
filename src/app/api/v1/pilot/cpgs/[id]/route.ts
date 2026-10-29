@@ -68,6 +68,6 @@ export async function GET(
     high_confidence_groups: 0,
     top_groups: [],
     coverage_note:
-      "Full-panel predicted β is available by cell type, tissue and organ; tissue × cell-type values exist for the 512-CpG slice only.",
+      "Full-panel predicted β is available by cell type, tissue, organ and tissue × cell type.",
   });
 }

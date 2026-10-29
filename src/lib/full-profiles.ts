@@ -1,8 +1,9 @@
 import celltypeMeta from "@/data/pilot/full/celltype_meta.json";
 import organMeta from "@/data/pilot/full/organ_meta.json";
 import tissueMeta from "@/data/pilot/full/tissue_meta.json";
+import tissueCelltypeMeta from "@/data/pilot/full/tissue_celltype_meta.json";
 
-export type FullLevel = "celltype" | "tissue" | "organ";
+export type FullLevel = "celltype" | "tissue" | "organ" | "tissue_celltype";
 
 export type FullGroup = {
   group_index: number;
@@ -25,12 +26,14 @@ const META: Record<FullLevel, MetaFile> = {
   celltype: celltypeMeta as unknown as MetaFile,
   tissue: tissueMeta as unknown as MetaFile,
   organ: organMeta as unknown as MetaFile,
+  tissue_celltype: tissueCelltypeMeta as unknown as MetaFile,
 };
 
 const FILES: Record<FullLevel, string> = {
   celltype: "celltype_mean_u8.bin",
   tissue: "tissue_mean_u8.bin",
   organ: "organ_mean_u8.bin",
+  tissue_celltype: "tissue_celltype_mean_u8.bin",
 };
 
 const BASE_URL = (
@@ -40,6 +43,11 @@ const BASE_URL = (
 
 export const FULL_LEVELS: { id: FullLevel; label: string; n_groups: number }[] = [
   { id: "celltype", label: "Cell types", n_groups: META.celltype.n_groups },
+  {
+    id: "tissue_celltype",
+    label: "Tissue × cell type",
+    n_groups: META.tissue_celltype.n_groups,
+  },
   { id: "tissue", label: "Tissues", n_groups: META.tissue.n_groups },
   { id: "organ", label: "Organs", n_groups: META.organ.n_groups },
 ];

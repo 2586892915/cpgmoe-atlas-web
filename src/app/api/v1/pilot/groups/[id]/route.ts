@@ -1,5 +1,7 @@
 import { pilotError, pilotResponse } from "@/lib/api";
-import { getGroup, pilotEnvelope, topCpgsForGroup } from "@/lib/pilot";
+import { fullTopCpgsForGroup } from "@/lib/group-top-cpgs";
+import { getGroup, pilotEnvelope } from "@/lib/pilot";
+import { getProbeByIndex } from "@/lib/probes";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +18,24 @@ export async function GET(
   if (!group) {
     return pilotError("group_not_found", "Unknown group id.", 404);
   }
+  const topCpgs = fullTopCpgsForGroup(groupId, 24).flatMap((item) => {
+    const probe = getProbeByIndex(item.panel_index);
+    if (!probe) return [];
+    return [
+      {
+        cpg_id: probe.probe_id,
+        genes: probe.genes,
+        chr: probe.chr,
+        pos: probe.pos,
+        beta: item.beta,
+        reference: Math.max(0, Math.min(1, item.beta - item.delta)),
+        delta: item.delta,
+      },
+    ];
+  });
   return pilotResponse({
     ...pilotEnvelope(),
     group,
-    top_cpgs: topCpgsForGroup(groupId, 24),
+    top_cpgs: topCpgs,
   });
 }

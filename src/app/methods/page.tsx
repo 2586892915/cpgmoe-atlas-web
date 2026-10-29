@@ -81,15 +81,16 @@ export default function MethodsPage() {
                   {" "}
                   {pilotRelease.n_cells_in_groups.toLocaleString("en-US")} cells
                   across {pilotRelease.n_groups.toLocaleString("en-US")}{" "}
-                  tissue × cell-type groups, with{" "}
-                  {pilotRelease.n_profiled_cpgs} high-variance panel CpGs.
+                  tissue × cell-type groups, with full-panel predicted β across{" "}
+                  {pilotRelease.n_full_profile_cpgs.toLocaleString("en-US")} CpGs.
                 </p>
                 <dl className="panel divide-y divide-line text-[12px]">
                   {[
                     ["Release", pilotRelease.release_id],
                     ["Aggregation", pilotRelease.aggregation],
                     ["Checkpoint", pilotRelease.checkpoint.sha256],
-                    ["Panel", `${pilotRelease.n_profiled_cpgs} / ${pilotRelease.n_panel_probes.toLocaleString("en-US")} CpGs`],
+                    ["Panel", `${pilotRelease.n_full_profile_cpgs.toLocaleString("en-US")} / ${pilotRelease.n_panel_probes.toLocaleString("en-US")} CpGs`],
+                    ["Candidate slice", `${pilotRelease.n_profiled_cpgs} high-variance CpGs`],
                     ["Groups", `${pilotRelease.n_groups} (${pilotRelease.n_groups_high_confidence} high-confidence)`],
                   ].map(([label, value]) => (
                     <div key={label} className="grid grid-cols-[130px_1fr] gap-3 px-3 py-2">

@@ -172,6 +172,11 @@ export function getProbe(id: string): ProbeRecord | null {
   return null;
 }
 
+export function getProbeByIndex(index: number): ProbeRecord | null {
+  if (!Number.isInteger(index) || index < 0 || index >= rows.length) return null;
+  return toRecord(rows[index], index);
+}
+
 export type SearchCpgPayload = {
   cpg_id: string;
   chr: string | null;

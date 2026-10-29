@@ -3,20 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import type { PilotCpgStat, PilotGroup } from "@/lib/pilot";
 
-type LevelId = "celltype" | "tissue" | "organ" | "group";
+type LevelId = "celltype" | "tissue" | "organ" | "tissue_celltype";
 
-type FullLevel = { id: "celltype" | "tissue" | "organ"; label: string; n_groups: number };
-
-type ProfileRow = {
-  label: string;
-  beta: number;
-  n_cells?: number;
-  n_donors?: number;
-  n_datasets?: number;
-  href?: string;
-};
+type FullLevel = { id: LevelId; label: string; n_groups: number };
 
 type ApiItem = {
   group_index: number;
@@ -27,6 +17,8 @@ type ApiItem = {
   beta: number;
 };
 
+type Row = ApiItem & { href: string };
+
 function histogram(values: number[]): number[] {
   const bins = Array(10).fill(0);
   for (const value of values) {
@@ -35,18 +27,18 @@ function histogram(values: number[]): number[] {
   return bins;
 }
 
+function hrefFor(level: LevelId, item: ApiItem) {
+  if (level === "celltype") return `/cell-types/${item.group_index}`;
+  if (level === "tissue") return `/tissues/${encodeURIComponent(item.label)}`;
+  if (level === "organ") return `/tissues?organ=${encodeURIComponent(item.label)}`;
+  return `/groups/${item.group_index}`;
+}
+
 export function ProfileTabs({
   cpgId,
-  detail,
   levels,
 }: {
   cpgId: string;
-  detail: {
-    stats: PilotCpgStat | null;
-    group_level_available: boolean;
-    n_groups: number;
-    top_groups: { group: PilotGroup; beta: number; delta: number }[];
-  };
   levels: FullLevel[];
 }) {
   const [level, setLevel] = useState<LevelId>(levels[0]?.id ?? "celltype");
@@ -55,7 +47,7 @@ export function ProfileTabs({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (level === "group" || rows[level]) return;
+    if (rows[level]) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
@@ -79,58 +71,25 @@ export function ProfileTabs({
     };
   }, [cpgId, level, rows]);
 
-  const tabs: { id: LevelId; label: string; count: number }[] = [
-    ...levels.map((entry) => ({ id: entry.id, label: entry.label, count: entry.n_groups })),
-    ...(detail.group_level_available
-      ? [{ id: "group" as LevelId, label: "Tissue × cell type", count: detail.n_groups }]
-      : []),
-  ];
-
-  const items = level === "group" ? null : rows[level];
-  const values = items?.map((item) => item.beta) ?? [];
-  const mean = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
-  const bins =
-    level === "group"
-      ? (detail.stats?.histogram ?? [])
-      : items
-        ? histogram(values)
-        : [];
-  const eligible = (items ?? []).filter((item) => item.n_cells >= 100);
-  const pool = eligible.length >= 12 ? eligible : (items ?? []);
-  const top: ProfileRow[] =
-    level === "group"
-      ? detail.top_groups.map((entry) => ({
-          label: entry.group.cell_type,
-          beta: entry.beta,
-          n_cells: entry.group.n_cells,
-          n_donors: entry.group.n_donors,
-          n_datasets: entry.group.n_datasets,
-          href: `/groups/${entry.group.group_id}`,
-        }))
-      : pool
-          .map((item) => ({ ...item, delta: item.beta - mean }))
-          .sort((left, right) => Math.abs(right.delta) - Math.abs(left.delta))
-          .slice(0, 12)
-          .map((item) => ({
-            label: item.label,
-            beta: item.beta,
-            n_cells: item.n_cells,
-            n_donors: item.n_donors,
-            n_datasets: item.n_datasets,
-            href:
-              level === "celltype"
-                ? `/cell-types/${item.group_index}`
-                : level === "tissue"
-                  ? `/tissues/${encodeURIComponent(item.label)}`
-                  : `/tissues?organ=${encodeURIComponent(item.label)}`,
-          }));
-
+  const items = rows[level] ?? [];
+  const values = items.map((item) => item.beta);
+  const mean = values.length
+    ? values.reduce((sum, value) => sum + value, 0) / values.length
+    : 0;
+  const bins = items.length ? histogram(values) : [];
   const max = bins.length ? Math.max(...bins) : 0;
+
+  const eligible = items.filter((item) => item.n_cells >= 100);
+  const pool = eligible.length >= 12 ? eligible : items;
+  const top: Row[] = pool
+    .map((item) => ({ ...item, href: hrefFor(level, item) }))
+    .sort((left, right) => Math.abs(right.beta - mean) - Math.abs(left.beta - mean))
+    .slice(0, 12);
 
   return (
     <div className="mt-5">
       <div className="flex flex-wrap items-center gap-1">
-        {tabs.map((tab) => (
+        {levels.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -141,14 +100,14 @@ export function ProfileTabs({
                 : "border-line bg-white text-ink-soft hover:border-primary/40"
             }`}
           >
-            {tab.label} · {tab.count.toLocaleString("en-US")}
+            {tab.label} · {tab.n_groups.toLocaleString("en-US")}
           </button>
         ))}
       </div>
 
       {error ? (
         <p className="mt-2 text-[11px] text-warm">{error}</p>
-      ) : loading && !items ? (
+      ) : loading && items.length === 0 ? (
         <div className="mt-4 flex items-center gap-2 text-[11px] text-ink-faint">
           <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
           Loading profile
@@ -169,38 +128,29 @@ export function ProfileTabs({
               </div>
               <div className="mt-1 flex justify-between text-[9px] text-ink-faint">
                 <span>0</span>
-                <span>
-                  β across{" "}
-                  {level === "group"
-                    ? detail.n_groups.toLocaleString("en-US")
-                    : values.length.toLocaleString("en-US")}{" "}
-                  groups
-                </span>
+                <span>β across {values.length.toLocaleString("en-US")} groups</span>
                 <span>1</span>
               </div>
             </div>
           ) : null}
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="micro-label">
-              {level === "group" ? "Top tissue × cell type" : "Top groups by |Δβ|"}
-            </p>
-            {level === "group" ? (
-              <span className="text-[9px] text-ink-faint">512-CpG panel</span>
-            ) : (
-              <span className="text-[9px] text-ink-faint">
-                full panel · groups with ≥100 cells
-              </span>
-            )}
+            <p className="micro-label">Top groups by |Δβ|</p>
+            <span className="text-[9px] text-ink-faint">
+              full panel · groups with ≥100 cells
+            </span>
           </div>
 
           <div className="mt-1 divide-y divide-line">
             {top.length === 0 ? (
               <p className="py-3 text-[11px] text-ink-faint">No values for this view.</p>
             ) : (
-              top.map((row) => {
-                const content = (
-                  <>
+              top.map((row) => (
+                <Link
+                  key={`${row.group_index}-${row.label}`}
+                  href={row.href}
+                  className="block py-2 transition-colors hover:bg-paper-tint"
+                >
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="min-w-0 truncate text-[12px] text-ink">
                       {row.label}
@@ -209,34 +159,18 @@ export function ProfileTabs({
                       {row.beta.toFixed(3)}
                     </span>
                   </div>
-                  {row.n_cells !== undefined ? (
-                    <p className="mt-0.5 text-[9px] text-ink-faint">
-                      {row.n_cells.toLocaleString("en-US")} cells · {row.n_donors} donors ·{" "}
-                      {row.n_datasets} {row.n_datasets === 1 ? "study" : "studies"}
-                    </p>
-                  ) : null}
+                  <p className="mt-0.5 text-[9px] text-ink-faint">
+                    {row.n_cells.toLocaleString("en-US")} cells · {row.n_donors} donors ·{" "}
+                    {row.n_datasets} {row.n_datasets === 1 ? "study" : "studies"}
+                  </p>
                   <div className="mt-1 h-[3px] w-full bg-paper-deep">
                     <div
                       className="h-full bg-primary"
                       style={{ width: `${Math.min(100, row.beta * 100)}%` }}
                     />
                   </div>
-                  </>
-                );
-                return row.href ? (
-                  <Link
-                    key={row.label}
-                    href={row.href}
-                    className="block py-2 transition-colors hover:bg-paper-tint"
-                  >
-                    {content}
-                  </Link>
-                ) : (
-                  <div key={row.label} className="py-2">
-                    {content}
-                  </div>
-                );
-              })
+                </Link>
+              ))
             )}
           </div>
         </>

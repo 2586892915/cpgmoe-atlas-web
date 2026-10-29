@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { humanize } from "@/lib/format";
-import { getGroup, pilotRelease, topCpgsForGroup } from "@/lib/pilot";
+import { fullTopCpgsForGroup, GROUP_TOP_N_CPGS } from "@/lib/group-top-cpgs";
+import { getGroup } from "@/lib/pilot";
+import { getProbeByIndex } from "@/lib/probes";
 import { cellTypeSignatures } from "@/lib/signatures";
 
 export const metadata: Metadata = {
@@ -21,7 +23,21 @@ export default async function GroupPage({
   if (!Number.isInteger(groupId)) notFound();
   const group = getGroup(groupId);
   if (!group) notFound();
-  const topCpgs = topCpgsForGroup(groupId, 30);
+  const topCpgs = fullTopCpgsForGroup(groupId, 30).flatMap((item) => {
+    const probe = getProbeByIndex(item.panel_index);
+    if (!probe) return [];
+    return [
+      {
+        cpg_id: probe.probe_id,
+        genes: probe.genes,
+        chr: probe.chr,
+        pos: probe.pos,
+        beta: item.beta,
+        reference: Math.max(0, Math.min(1, item.beta - item.delta)),
+        delta: item.delta,
+      },
+    ];
+  });
   const cellTypeProfile = cellTypeSignatures().find(
     (entry) => entry.label === group.cell_type,
   );
@@ -67,7 +83,7 @@ export default async function GroupPage({
           ["Cells", group.n_cells.toLocaleString("en-US")],
           ["Donors", `${group.n_donors}`],
           ["Studies", `${group.n_datasets}`],
-          ["CpGs in this slice", `${pilotRelease.n_profiled_cpgs}`],
+          ["CpGs profiled", GROUP_TOP_N_CPGS.toLocaleString("en-US")],
         ].map(([label, value]) => (
           <div key={label} className="bg-white px-4 py-3">
             <p className="text-[9px] uppercase text-ink-faint">{label}</p>
@@ -100,7 +116,8 @@ export default async function GroupPage({
         <div>
           <p className="micro-label">Candidate signature CpGs</p>
           <p className="mt-1 text-[11px] text-ink-faint">
-            Ranked by |β − panel mean| across the 512-CpG tissue × cell-type slice.
+            Top 30 by |β − panel mean| across all{" "}
+            {GROUP_TOP_N_CPGS.toLocaleString("en-US")} CpGs.
           </p>
         </div>
         <Link

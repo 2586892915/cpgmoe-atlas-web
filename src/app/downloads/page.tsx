@@ -14,7 +14,7 @@ import { pilotRelease } from "@/lib/pilot";
 export const metadata: Metadata = {
   title: "Downloads & API",
   description:
-    "Planned download products and the demo API contract for the CPGMoE Atlas Phase 0 prototype.",
+    "Pilot aggregate downloads, full-panel profile release, and the CPGMoE Atlas API.",
 };
 
 const FIELDS = [
@@ -121,8 +121,9 @@ export default function DownloadsPage() {
                 Full panel · 485,403 CpGs
               </p>
               <p className="mt-0.5 text-[11px] text-ink-soft">
-                569 cell types (276 MB) · 207 tissues (100 MB) · 16 organs (7.8 MB).
-                uint8, CpG-major; offset = panel_index × n_groups.
+                569 cell types (276 MB) · 207 tissues (96 MB) · 16 organs
+                (7.5 MB) · 2,093 tissue × cell types (1.0 GB). uint8, CpG-major;
+                offset = panel_index × n_groups.
               </p>
             </div>
             <a
@@ -188,9 +189,11 @@ export default function DownloadsPage() {
   ? `GET /api/v1/pilot/release
 GET /api/v1/pilot/search?q=
 GET /api/v1/pilot/cpgs/{cpg_id}
+GET /api/v1/pilot/cpgs/{cpg_id}/profiles?level=celltype|tissue_celltype|tissue|organ
 GET /api/v1/pilot/groups?q=&tissue=&cell_type=&high_confidence=
 GET /api/v1/pilot/groups/{id}
-GET /api/v1/pilot/heatmap`
+GET /api/v1/pilot/heatmap
+POST /api/v1/pilot/compare`
   : `GET /api/v1/status
 GET /api/v1/datasets?search=&tissue=&cursor=&limit=
 GET /api/v1/datasets/{id}

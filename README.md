@@ -1,8 +1,8 @@
-# CPGMoE Atlas — Phase 0 网站骨架
+# CPGMoE Atlas — Phase 1 pilot
 
-一个可本地运行、可交互的学术数据门户原型，用于探索 **predicted**、panel-based、single-cell DNA methylation。首页采用 Guomics 风格的深色粒子入口，但主体是两条姐妹染色单体组成的可交互染色体，向内页过渡为浅色科研数据门户。所有页面、图表和 API 当前都只使用 **合成演示数据**。
+一个可交互的学术数据门户，用于探索 **predicted**、panel-based、single-cell DNA methylation。首页是深色粒子入口与可旋转的 3D 染色体，向内页过渡为浅色科研数据门户。默认 `pilot_predicted` 模式读取 3M-cell Full-S3 预实验的聚合结果。
 
-> 重要边界：本仓库不读取真实人类 scRNA 文件，不运行 CPGMoE 推理，不生成甲基化图谱，不提供生产下载。所有 `predicted_beta` 都是 `is_synthetic_demo: true` 的界面契约演示值。
+> 重要边界：本仓库不读取原始人类 scRNA 文件，不运行 CPGMoE 推理，不生成甲基化图谱。网站只读取离线聚合的预测值；全量 profile 通过 HTTP Range 从 GitHub release 读取。所有 `predicted_beta` 都不是实测甲基化。
 
 ## Phase 1 预实验（当前默认模式）
 
@@ -13,8 +13,8 @@
 | 预实验细胞 | 3,000,000（组内覆盖 2,933,703） |
 | tissue × cell-type 组 | 2,093（其中 564 组为高置信：≥100 cells / ≥3 donors / ≥2 studies） |
 | 检索覆盖 | 全部 485,403 个 probe（注释 + 全局统计） |
-| 全量组级 β | 569 细胞类型 / 207 组织 / 16 器官系统 × 485,403 CpG（GitHub release `pilot-full450k-v1`） |
-| tissue × cell-type β | 512 个高变 CpG（2,093 组） |
+| 全量组级 β | 569 细胞类型 / 207 组织 / 16 器官系统 / 2,093 tissue × cell-type 组 × 485,403 CpG（GitHub release `pilot-full450k-v1`） |
+| 候选切片 | 512 个高变 CpG，用于热图与表格下载 |
 | 聚合方式 | 每个单细胞预测值的组内均值 |
 | 版本 | `pilot_3m_20261024` |
 
@@ -47,7 +47,7 @@ npm run start
 
 ```bash
 npm run lint
-npm test          # 32 个 Vitest 测试
+npm test          # 52 个 Vitest 测试
 npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 ```
 
@@ -62,11 +62,11 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | `/browser` | Gene / CpG probe / GRCh38 region 查询、基因示意、分布图、基因组轨道占位 |
 | `/compare` | 两组切换、群体均值、Δ 热图、无推断统计的边界声明 |
 | `/groups` | 兼容入口：重定向到 `/tissues`（组织优先） |
-| `/groups/[id]` | 单组详情：支持度、候选 signature CpG、跳转 Browser/Compare |
+| `/groups/[id]` | 单组详情：支持度、全 485,403 CpG 的 top 30、跳转 Browser/Compare |
 | `/tissues` | 组织目录：搜索、器官筛选、组数/细胞数 |
 | `/tissues/[id]` | 组织详情：细胞类型构成、支持度、组织级 CpG 偏移 |
 | `/cell-types/[id]` | 细胞类型详情：支持度 + 全量面板上 top 40 预测偏移 CpG |
-| `/downloads` | 禁用中的计划下载产品、字段字典、API 契约 |
+| `/downloads` | pilot 表格、四级全量 profile release、字段字典、API 契约 |
 | `/methods` | 方法、语义、评估边界、坐标约定、生命周期与治理 |
 | `/about` | 定位、数据政策、引用与联系方式占位 |
 | `/not-found`、`error.tsx`、`loading.tsx` | 404、路由错误和加载状态 |
@@ -107,8 +107,9 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | GET | `/api/v1/pilot/release` | 预实验版本、计数、checkpoint 来源 |
 | GET | `/api/v1/pilot/search?q=` | gene / probe / GRCh38 区间 / group 检索 |
 | GET | `/api/v1/pilot/cpgs/{id}` | CpG 注释、分布统计、top groups |
+| GET | `/api/v1/pilot/cpgs/{id}/profiles?level=` | 四级全量 profile（`celltype` / `tissue_celltype` / `tissue` / `organ`） |
 | GET | `/api/v1/pilot/groups` | 组列表（`q`、`tissue`、`cell_type`、`organ_system`、`high_confidence`） |
-| GET | `/api/v1/pilot/groups/{id}` | 组详情 + top CpGs |
+| GET | `/api/v1/pilot/groups/{id}` | 组详情 + 全量 top CpGs |
 | GET | `/api/v1/pilot/heatmap` | 器官系统 / top groups 的 512-CpG 矩阵 |
 | POST | `/api/v1/pilot/compare` | `{ group_a, group_b, cpg_ids[] }` → Δβ，`statistical_tests: unavailable` |
 | POST | `/api/v1/preview/compare` | 合成 Δ 预览；`statistical_tests: "unavailable_in_demo"` |
