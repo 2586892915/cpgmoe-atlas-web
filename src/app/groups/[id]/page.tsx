@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { humanize } from "@/lib/format";
 import { getGroup, pilotRelease, topCpgsForGroup } from "@/lib/pilot";
+import { cellTypeSignatures } from "@/lib/signatures";
 
 export const metadata: Metadata = {
   title: "Group detail",
@@ -21,6 +22,9 @@ export default async function GroupPage({
   const group = getGroup(groupId);
   if (!group) notFound();
   const topCpgs = topCpgsForGroup(groupId, 30);
+  const cellTypeProfile = cellTypeSignatures().find(
+    (entry) => entry.label === group.cell_type,
+  );
 
   return (
     <div className="shell py-8">
@@ -63,7 +67,7 @@ export default async function GroupPage({
           ["Cells", group.n_cells.toLocaleString("en-US")],
           ["Donors", `${group.n_donors}`],
           ["Studies", `${group.n_datasets}`],
-          ["Profiled CpGs", `${pilotRelease.n_profiled_cpgs}`],
+          ["CpGs in this slice", `${pilotRelease.n_profiled_cpgs}`],
         ].map(([label, value]) => (
           <div key={label} className="bg-white px-4 py-3">
             <p className="text-[9px] uppercase text-ink-faint">{label}</p>
@@ -74,11 +78,29 @@ export default async function GroupPage({
         ))}
       </div>
 
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-ink-soft">
+        <span className="text-ink-faint">Full 485,403-CpG profile:</span>
+        {cellTypeProfile ? (
+          <Link
+            href={`/cell-types/${cellTypeProfile.group_index}`}
+            className="text-primary hover:underline"
+          >
+            by cell type →
+          </Link>
+        ) : null}
+        <Link
+          href={`/tissues/${encodeURIComponent(group.tissue)}`}
+          className="text-primary hover:underline"
+        >
+          by tissue →
+        </Link>
+      </div>
+
       <div className="mt-6 flex items-end justify-between border-b border-line pb-2">
         <div>
           <p className="micro-label">Candidate signature CpGs</p>
           <p className="mt-1 text-[11px] text-ink-faint">
-            Ranked by |β − panel mean| across the 512-CpG pilot panel.
+            Ranked by |β − panel mean| across the 512-CpG tissue × cell-type slice.
           </p>
         </div>
         <Link
