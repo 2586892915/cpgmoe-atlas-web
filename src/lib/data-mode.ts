@@ -40,5 +40,5 @@ export const MODE_BANNER = IS_PILOT
   : "Demo environment — synthetic data only";
 
 export const MODE_BANNER_DETAIL = IS_PILOT
-  ? "3.0M cells · 2,093 groups · 512 CpGs"
+  ? "3.0M cells · 2,093 groups · 485,403 CpGs"
   : "Illustrative values only.";

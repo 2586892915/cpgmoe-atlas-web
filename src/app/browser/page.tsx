@@ -51,15 +51,15 @@ export default async function BrowserPage({
               Gene &amp; CpG Browser
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-              Search all {PROBE_COUNT.toLocaleString("en-US")} panel probes by
-              gene, probe, or GRCh38 interval. {PROFILED_COUNT} carry group-level
-              predicted β.
+              Search all {PROBE_COUNT.toLocaleString("en-US")} probes. Predicted β
+              is available by cell type, tissue and organ; tissue × cell type
+              covers {PROFILED_COUNT} CpGs.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Badge tone="neutral">GRCh38 / hg38</Badge>
             <Badge tone="warm" dot>
-              485K probes · {PROFILED_COUNT} with β
+              485K probes · full-panel β
             </Badge>
           </div>
         </div>

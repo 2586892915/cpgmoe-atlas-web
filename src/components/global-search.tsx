@@ -108,7 +108,7 @@ export function GlobalSearch({ autoFocus = false }: { autoFocus?: boolean }) {
           <span aria-hidden="true" className="mr-1.5 text-line-strong">
             |
           </span>
-          GRCh38/hg38 · {IS_PILOT ? "512-CpG panel" : "demo records only"}
+          GRCh38/hg38 · {IS_PILOT ? "485,403 probes" : "demo records only"}
         </span>
       </div>
       {error ? (

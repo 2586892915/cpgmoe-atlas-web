@@ -130,7 +130,7 @@ export function CpgPanel({ cpgId }: { cpgId: string | null }) {
           <p className="mono mt-1 text-[11px] text-ink-faint">{cpg.cpg_id}</p>
         </div>
         <Badge tone={detail.group_level_available ? "primary" : "neutral"} dot>
-          {detail.group_level_available ? "512-CpG panel" : "full panel"}
+          {detail.group_level_available ? "panel + full" : "full panel"}
         </Badge>
       </div>
 

@@ -36,7 +36,7 @@ export default async function AtlasPage({
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Badge tone="neutral">{pilotRelease.n_profiled_cpgs} CpGs</Badge>
+            <Badge tone="neutral">{pilotRelease.n_profiled_cpgs} heatmap CpGs</Badge>
           </div>
         </div>
 

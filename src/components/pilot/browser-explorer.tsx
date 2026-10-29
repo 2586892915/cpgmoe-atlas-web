@@ -171,8 +171,8 @@ export function PilotBrowser({
           </p>
           <span className="text-[10px] text-ink-faint">
             {results.coverage
-              ? `${results.coverage.indexed_probes.toLocaleString("en-US")} indexed · ${results.coverage.profiled_cpgs} with group β`
-              : "512-CpG panel"}
+              ? `${results.coverage.indexed_probes.toLocaleString("en-US")} probes · full-panel β`
+              : "485,403 probes"}
           </span>
         </div>
 
@@ -203,7 +203,7 @@ export function PilotBrowser({
                         : "border-line text-ink-faint"
                     }`}
                   >
-                    {cpg.profiled ? "group β" : "annotation"}
+                    {cpg.profiled ? "panel + full" : "full β"}
                   </span>
                   <ArrowRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden="true" />
                 </span>

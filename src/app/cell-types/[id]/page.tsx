@@ -88,14 +88,19 @@ export default async function CellTypePage({
             className="group grid gap-1 border-t border-line px-2 py-2.5 transition-colors hover:bg-paper-tint sm:grid-cols-[1.1fr_1.6fr_0.6fr_0.6fr_auto] sm:items-center sm:gap-3"
           >
             <span className="mono text-[11px] text-ink">{cpg.cpg_id}</span>
-            <span className="truncate text-[11px] text-ink-soft">
+            <span className="text-[10px] text-ink-faint sm:hidden">
+              {cpg.gene ?? "—"} · β {cpg.beta.toFixed(3)} · Δ{" "}
+              {cpg.delta >= 0 ? "+" : ""}
+              {cpg.delta.toFixed(3)}
+            </span>
+            <span className="hidden truncate text-[11px] text-ink-soft sm:inline">
               {cpg.gene ?? "—"}
             </span>
-            <span className="tabular text-[11px] text-ink sm:text-right">
+            <span className="hidden tabular text-[11px] text-ink sm:inline sm:text-right">
               {cpg.beta.toFixed(3)}
             </span>
             <span
-              className={`tabular text-[11px] sm:text-right ${
+              className={`hidden tabular text-[11px] sm:inline sm:text-right ${
                 cpg.delta >= 0 ? "text-primary" : "text-warm"
               }`}
             >

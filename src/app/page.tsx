@@ -4,6 +4,7 @@ import { CinematicHero } from "@/components/home/cinematic-hero";
 import { GlobalSearch } from "@/components/global-search";
 import { count } from "@/lib/format";
 import { IS_PILOT } from "@/lib/data-mode";
+import { FULL_LEVELS } from "@/lib/full-profiles";
 import { pilotHeatmap, pilotRelease } from "@/lib/pilot";
 
 const TOOLS = IS_PILOT
@@ -24,8 +25,11 @@ const METRICS = IS_PILOT
   ? [
       { value: "3.0M", label: "cells" },
       { value: "2,093", label: "cell-type groups" },
-      { value: "435", label: "cell types" },
-      { value: "512", label: "CpGs" },
+      {
+        value: `${FULL_LEVELS.find((level) => level.id === "celltype")?.n_groups ?? 569}`,
+        label: "cell types",
+      },
+      { value: "485K", label: "CpGs" },
     ]
   : [
       { value: "450K", label: "panel CpGs" },
@@ -155,7 +159,8 @@ export default function HomePage() {
         <div className="shell flex flex-wrap items-center justify-between gap-2 border-t border-line py-3 text-[10px] text-ink-faint">
           <span>Release {pilotRelease.release_id}</span>
           <span>
-            Updated {pilotRelease.generated_at} · {pilotRelease.n_profiled_cpgs} CpGs ·{" "}
+            Updated {pilotRelease.generated_at} ·{" "}
+            {pilotRelease.n_panel_probes.toLocaleString("en-US")} CpGs ·{" "}
             {pilotRelease.n_groups.toLocaleString("en-US")} groups
           </span>
           <Link href="/methods#data-status" className="hover:text-primary">
