@@ -25,6 +25,7 @@ Status: **research preview (pilot)**. Not the final pan-human atlas.
 | Panel probes predicted | 485,403 | full panel produced offline |
 | Indexed for search | 485,403 | hg38 coordinates, gene, island, global mean/variance |
 | CpGs in the web slice | 512 | pre-declared high-variance panel |
+| Full-panel profiles | 569 cell types / 207 tissues / 16 organs × 485,403 CpGs | uint8, CpG-major |
 | Annotated CpGs | 512 | hg38 coordinate + island/gene/promoter |
 
 All values are **predicted** by Full-S3 and aggregated offline. No measured
@@ -68,6 +69,11 @@ Generated into `src/data/pilot/` by `scripts/pilot/build_pilot_bundle.py`:
 | `heatmap.json` | 16 organ-system aggregates + 48 largest groups |
 
 Total ≈ 5 MB, server-side only. Client bundles receive only the current view.
+
+Full-panel group means are served from the GitHub release
+`pilot-full450k-v1` (celltype 276 MB, tissue 100 MB, organ 7.8 MB; uint8,
+offset = `panel_index × n_groups`). The app reads single records with HTTP
+Range requests and caches them in memory.
 
 ## 6. Rebuilding
 
@@ -128,6 +134,7 @@ by any pilot page.
 | Cell Type Atlas / Tissue Explorer | Tissue-first: `/tissues` + `/tissues/[id]`; `/groups/[id]` keeps single-group detail |
 | Atlas as heatmap-first | Done (`/atlas`) |
 | Compare with effect sizes | Done (Δβ only, no p-values) |
-| Full 485,403-probe browser | Search + annotation done; only 512 CpGs carry group aggregates |
-| TP53 example | Available as annotation-only (39 probes, no group β) |
+| Full 485,403-probe browser | Search, annotation and full-panel cell-type/tissue/organ β done |
+| Tissue × cell type at full panel | Still 512 CpGs only (2,093 combinations) |
+| TP53 example | Available with full-panel β (39 probes) |
 | Downloads | Done — `/downloads` serves groups.csv, cpgs.csv, cpg_stats.csv, heatmap_organ_systems.csv, release.json |

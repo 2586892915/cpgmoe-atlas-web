@@ -149,6 +149,27 @@ export default function DownloadsPage() {
               </a>
             ))}
           </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border border-line bg-white px-4 py-3">
+            <div>
+              <p className="text-[12px] font-medium text-ink">
+                Full panel · 485,403 CpGs
+              </p>
+              <p className="mt-0.5 text-[11px] text-ink-soft">
+                569 cell types (276 MB) · 207 tissues (100 MB) · 16 organs (7.8 MB).
+                uint8, CpG-major; offset = panel_index × n_groups.
+              </p>
+            </div>
+            <a
+              href="https://github.com/2586892915/cpgmoe-atlas-web/releases/tag/pilot-full450k-v1"
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-secondary shrink-0"
+            >
+              GitHub release
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </div>
         </section>
       ) : null}
 

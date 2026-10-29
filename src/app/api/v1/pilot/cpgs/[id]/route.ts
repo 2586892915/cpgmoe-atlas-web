@@ -1,4 +1,5 @@
 import { pilotError, pilotResponse } from "@/lib/api";
+import { FULL_LEVELS } from "@/lib/full-profiles";
 import {
   cpgGroupValues,
   getCpg,
@@ -22,6 +23,7 @@ export async function GET(
     const values = cpgGroupValues(id);
     return pilotResponse({
       ...pilotEnvelope(),
+      full_levels: FULL_LEVELS,
       cpg,
       stats,
       group_level_available: true,
@@ -39,6 +41,7 @@ export async function GET(
 
   return pilotResponse({
     ...pilotEnvelope(),
+    full_levels: FULL_LEVELS,
     cpg: {
       cpg_id: probe.probe_id,
       panel_slot: null,
@@ -65,6 +68,6 @@ export async function GET(
     high_confidence_groups: 0,
     top_groups: [],
     coverage_note:
-      "Annotated in the 485,403-probe panel; group-level predicted β is only published for the 512-CpG slice.",
+      "Full-panel predicted β is available by cell type, tissue and organ; tissue × cell-type values exist for the 512-CpG slice only.",
   });
 }

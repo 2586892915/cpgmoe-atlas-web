@@ -45,9 +45,10 @@ export type ProbeRecord = {
   promoter: string | null;
   profiled: boolean;
   panel_slot: number | null;
+  panel_index: number;
 };
 
-function toRecord(row: ProbeRow): ProbeRecord {
+function toRecord(row: ProbeRow, index: number): ProbeRecord {
   return {
     probe_id: row[0],
     chr: row[1] >= 0 ? data.chr[row[1]] : null,
@@ -60,6 +61,7 @@ function toRecord(row: ProbeRow): ProbeRecord {
     promoter: row[8] >= 0 ? data.promoter[row[8]] : null,
     profiled: profiledById.has(row[0]),
     panel_slot: profiledById.get(row[0]) ?? null,
+    panel_index: index,
   };
 }
 
@@ -114,7 +116,7 @@ export function searchProbes(rawQuery: string, limit = 40): ProbeSearchResult {
       const rightProfiled = profiledById.has(rows[right][0]) ? 0 : 1;
       return leftProfiled - rightProfiled || left - right;
     });
-    const items = ranked.slice(0, limit).map((index) => toRecord(rows[index]));
+    const items = ranked.slice(0, limit).map((index) => toRecord(rows[index], index));
     return {
       query_type,
       items,
@@ -165,7 +167,7 @@ export function searchProbes(rawQuery: string, limit = 40): ProbeSearchResult {
 export function getProbe(id: string): ProbeRecord | null {
   const target = id.toLowerCase();
   for (let row = 0; row < rows.length; row += 1) {
-    if (rows[row][0] === target) return toRecord(rows[row]);
+    if (rows[row][0] === target) return toRecord(rows[row], row);
   }
   return null;
 }

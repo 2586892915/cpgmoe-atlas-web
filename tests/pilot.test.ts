@@ -19,6 +19,7 @@ import {
   PROBE_COUNT,
   searchProbes,
 } from "@/lib/probes";
+import { FULL_LEVELS, fullGroups, readFullRecord } from "@/lib/full-profiles";
 
 describe("pilot data layer", () => {
   it("exposes the 3M-cell pilot totals", () => {
@@ -173,5 +174,28 @@ describe("full-panel probe index", () => {
     expect(body.group_level_available).toBe(false);
     expect(body.n_groups).toBe(0);
     expect((body.cpg as Record<string, unknown>).panel_slot).toBeNull();
+  });
+});
+
+describe("full-panel profile store", () => {
+  it("exposes cell type, tissue and organ levels", () => {
+    expect(FULL_LEVELS.map((level) => level.n_groups)).toEqual([569, 207, 16]);
+    expect(fullGroups("organ")).toHaveLength(16);
+  });
+
+  it("decodes a uint8 record from a range response", async () => {
+    const original = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(new Uint8Array(Array.from({ length: 16 }, (_, i) => i * 16)), {
+        status: 206,
+      })) as typeof fetch;
+    try {
+      const values = await readFullRecord("organ", 1);
+      expect(values).toHaveLength(16);
+      expect(values?.[0]).toBe(0);
+      expect(values?.[15]).toBeCloseTo(240 / 255, 5);
+    } finally {
+      globalThis.fetch = original;
+    }
   });
 });
