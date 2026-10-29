@@ -28,8 +28,16 @@ export function CinematicHeader() {
       setOverHero(bottom > 64);
     };
     onScroll();
+    const frame = requestAnimationFrame(onScroll);
+    const timer = window.setTimeout(onScroll, 250);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   useEffect(() => {
