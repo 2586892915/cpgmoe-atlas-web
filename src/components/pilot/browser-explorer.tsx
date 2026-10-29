@@ -4,21 +4,38 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import { CpgPanel } from "@/components/pilot/cpg-panel";
-import type { PilotCpg, PilotGroup } from "@/lib/pilot";
+import type { PilotGroup } from "@/lib/pilot";
+
+export type SearchCpg = {
+  cpg_id: string;
+  chr: string | null;
+  pos: number | null;
+  genes: string | null;
+  profiled: boolean;
+  panel_slot: number | null;
+  global_mean_beta: number;
+  total_variance: number;
+  celltype_variance_fraction: number;
+  island_relation: string | null;
+  promoter: string | null;
+};
 
 export type SearchPayload = {
   query: string;
   query_type: "gene" | "probe" | "region" | "group" | "unknown" | "empty";
-  cpgs: PilotCpg[];
+  cpgs: SearchCpg[];
   groups: PilotGroup[];
   gene: { symbol: string; cpg_count: number } | null;
   region: { chr: string; start: number; end: number } | null;
   truncated: boolean;
+  total?: number;
+  coverage?: { indexed_probes: number; profiled_cpgs: number };
 };
 
 const EXAMPLES = [
+  { label: "TP53", value: "TP53" },
   { label: "PTPRN2", value: "PTPRN2" },
-  { label: "cg09725213", value: "cg09725213" },
+  { label: "cg00050873", value: "cg00050873" },
   { label: "chrX:90,689,602-90,690,119", value: "chrX:90689602-90690119" },
 ];
 
@@ -31,7 +48,7 @@ const TYPE_LABEL: Record<SearchPayload["query_type"], string> = {
   empty: "empty",
 };
 
-function locus(cpg: PilotCpg) {
+function locus(cpg: SearchCpg) {
   if (!cpg.chr || cpg.pos === null) return "locus unavailable";
   return `${cpg.chr}:${cpg.pos.toLocaleString("en-US")}`;
 }
@@ -145,12 +162,18 @@ export function PilotBrowser({
         <div className="mt-5 flex items-center justify-between border-b border-line pb-2">
           <p className="micro-label">
             {results.query_type === "empty"
-              ? "Search the pilot panel"
-              : `${TYPE_LABEL[results.query_type]} · ${results.cpgs.length} probe${
-                  results.cpgs.length === 1 ? "" : "s"
+              ? "Search the panel"
+              : `${TYPE_LABEL[results.query_type]} · ${(
+                  results.total ?? results.cpgs.length
+                ).toLocaleString("en-US")} probe${
+                  (results.total ?? results.cpgs.length) === 1 ? "" : "s"
                 }`}
           </p>
-          <span className="text-[10px] text-ink-faint">512-CpG panel</span>
+          <span className="text-[10px] text-ink-faint">
+            {results.coverage
+              ? `${results.coverage.indexed_probes.toLocaleString("en-US")} indexed · ${results.coverage.profiled_cpgs} with group β`
+              : "512-CpG panel"}
+          </span>
         </div>
 
         {results.cpgs.length > 0 ? (
@@ -173,8 +196,14 @@ export function PilotBrowser({
                   </span>
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="hidden text-[10px] text-ink-faint sm:inline">
-                    slot {cpg.panel_slot}
+                  <span
+                    className={`border px-1.5 py-0.5 text-[9px] ${
+                      cpg.profiled
+                        ? "border-primary/30 text-primary"
+                        : "border-line text-ink-faint"
+                    }`}
+                  >
+                    {cpg.profiled ? "group β" : "annotation"}
                   </span>
                   <ArrowRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden="true" />
                 </span>
@@ -189,7 +218,8 @@ export function PilotBrowser({
                 : "No probe in the pilot panel matches this query."}
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-ink-soft">
-              The web slice covers 512 of 485,403 panel probes.
+              Only gene symbols and hg38 coordinates are indexed; try a gene,
+              probe, or region.
             </p>
           </div>
         )}

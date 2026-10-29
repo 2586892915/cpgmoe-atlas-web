@@ -13,6 +13,12 @@ import {
   searchPilot,
   tissueCpgs,
 } from "@/lib/pilot";
+import {
+  getProbe,
+  PROFILED_COUNT,
+  PROBE_COUNT,
+  searchProbes,
+} from "@/lib/probes";
 
 describe("pilot data layer", () => {
   it("exposes the 3M-cell pilot totals", () => {
@@ -134,5 +140,38 @@ describe("pilot API routes", () => {
     const body = (await response.json()) as Record<string, unknown>;
     expect(body.query_type).toBe("probe");
     expect((body.cpgs as unknown[]).length).toBe(1);
+  });
+});
+
+describe("full-panel probe index", () => {
+  it("indexes all 485,403 probes with 512 profiled", () => {
+    expect(PROBE_COUNT).toBe(485403);
+    expect(PROFILED_COUNT).toBe(512);
+  });
+
+  it("finds a gene that is outside the 512-CpG slice", () => {
+    const result = searchProbes("TP53", 100);
+    expect(result.query_type).toBe("gene");
+    expect(result.total).toBeGreaterThan(0);
+    expect(result.items.every((item) => item.profiled === false)).toBe(true);
+    expect(result.items[0].chr).toMatch(/^chr/);
+  });
+
+  it("resolves any probe with coordinates and global statistics", () => {
+    const probe = getProbe("cg00050873");
+    expect(probe?.chr).toBe("chrY");
+    expect(probe?.global_mean_beta).toBeGreaterThan(0);
+    expect(probe?.profiled).toBe(false);
+  });
+
+  it("serves annotation-only detail for a non-panel probe", async () => {
+    const response = await getCpg(new Request("http://localhost"), {
+      params: Promise.resolve({ id: "cg00050873" }),
+    });
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as Record<string, unknown>;
+    expect(body.group_level_available).toBe(false);
+    expect(body.n_groups).toBe(0);
+    expect((body.cpg as Record<string, unknown>).panel_slot).toBeNull();
   });
 });

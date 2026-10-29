@@ -6,6 +6,7 @@ import {
   pilotEnvelope,
   topGroupsForCpg,
 } from "@/lib/pilot";
+import { getProbe } from "@/lib/probes";
 
 export const dynamic = "force-dynamic";
 
@@ -15,20 +16,55 @@ export async function GET(
 ): Promise<Response> {
   const { id } = await params;
   const cpg = getCpg(id);
-  if (!cpg) {
-    return pilotError("cpg_not_found", "Unknown CpG id in the pilot panel.", 404);
+
+  if (cpg) {
+    const stats = getCpgStats(id);
+    const values = cpgGroupValues(id);
+    return pilotResponse({
+      ...pilotEnvelope(),
+      cpg,
+      stats,
+      group_level_available: true,
+      n_groups: values.length,
+      high_confidence_groups: values.filter((value) => value.group.high_confidence).length,
+      top_groups: topGroupsForCpg(id, 15),
+      coverage_note: null,
+    });
   }
-  const stats = getCpgStats(id);
-  const values = cpgGroupValues(id);
+
+  const probe = getProbe(id);
+  if (!probe) {
+    return pilotError("cpg_not_found", "Unknown probe id.", 404);
+  }
+
   return pilotResponse({
     ...pilotEnvelope(),
-    cpg,
-    stats,
-    n_groups: values.length,
-    high_confidence_groups: values.filter((value) => value.group.high_confidence).length,
-    top_groups: topGroupsForCpg(id, 15),
+    cpg: {
+      cpg_id: probe.probe_id,
+      panel_slot: null,
+      chr: probe.chr,
+      pos: probe.pos,
+      genome_build: "GRCh38",
+      panel_index: null,
+      context: null,
+      island_relation: probe.island,
+      island_locus: null,
+      promoter: probe.promoter,
+      genes: probe.genes,
+      gene_groups: null,
+      total_variance: probe.total_variance,
+    },
+    probe: {
+      global_mean_beta: probe.global_mean_beta,
+      total_variance: probe.total_variance,
+      celltype_variance_fraction: probe.celltype_variance_fraction,
+    },
+    stats: null,
+    group_level_available: false,
+    n_groups: 0,
+    high_confidence_groups: 0,
+    top_groups: [],
     coverage_note:
-      "Only the 512-CpG high-variance panel carries group-level beta in this pilot. " +
-      "Other panel probes are not served by the web slice.",
+      "Annotated in the 485,403-probe panel; group-level predicted β is only published for the 512-CpG slice.",
   });
 }

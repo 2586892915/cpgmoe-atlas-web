@@ -23,6 +23,7 @@ Status: **research preview (pilot)**. Not the final pan-human atlas.
 | Tissues | 205 | |
 | Cell types | 435 | |
 | Panel probes predicted | 485,403 | full panel produced offline |
+| Indexed for search | 485,403 | hg38 coordinates, gene, island, global mean/variance |
 | CpGs in the web slice | 512 | pre-declared high-variance panel |
 | Annotated CpGs | 512 | hg38 coordinate + island/gene/promoter |
 
@@ -127,6 +128,6 @@ by any pilot page.
 | Cell Type Atlas / Tissue Explorer | Tissue-first: `/tissues` + `/tissues/[id]`; `/groups/[id]` keeps single-group detail |
 | Atlas as heatmap-first | Done (`/atlas`) |
 | Compare with effect sizes | Done (Δβ only, no p-values) |
-| Full 485,403-probe browser | **Not done** — only 512 CpGs carry group aggregates |
-| TP53 example | **Unavailable** — TP53 is not on the 512 high-variance panel |
+| Full 485,403-probe browser | Search + annotation done; only 512 CpGs carry group aggregates |
+| TP53 example | Available as annotation-only (39 probes, no group β) |
 | Downloads | Done — `/downloads` serves groups.csv, cpgs.csv, cpg_stats.csv, heatmap_organ_systems.csv, release.json |

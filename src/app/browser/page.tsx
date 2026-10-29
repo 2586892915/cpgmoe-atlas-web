@@ -3,7 +3,13 @@ import { BrowserExplorer } from "@/components/browser/browser-explorer";
 import { PilotBrowser } from "@/components/pilot/browser-explorer";
 import { Badge } from "@/components/ui/badge";
 import { IS_PILOT } from "@/lib/data-mode";
-import { pilotRelease, searchPilot } from "@/lib/pilot";
+import { searchPilot } from "@/lib/pilot";
+import {
+  PROFILED_COUNT,
+  PROBE_COUNT,
+  searchProbes,
+  toSearchCpg,
+} from "@/lib/probes";
 import { DEMO_CELLS } from "@/mock/cells";
 import { DEMO_DATASETS } from "@/mock/datasets";
 
@@ -22,7 +28,21 @@ export default async function BrowserPage({
 
   if (IS_PILOT) {
     const query = q ?? "";
-    const results = searchPilot(query);
+    const probes = searchProbes(query);
+    const results = {
+      query,
+      query_type: probes.query_type,
+      cpgs: probes.items.map(toSearchCpg),
+      groups: query.trim() ? searchPilot(query).groups : [],
+      gene: null,
+      region: null,
+      truncated: probes.total > 40,
+      total: probes.total,
+      coverage: {
+        indexed_probes: PROBE_COUNT,
+        profiled_cpgs: PROFILED_COUNT,
+      },
+    };
     return (
       <div className="shell py-8">
         <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-end sm:justify-between">
@@ -31,13 +51,15 @@ export default async function BrowserPage({
               Gene &amp; CpG Browser
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-              Search the piloted 512-CpG panel by gene, probe, or GRCh38 interval.
+              Search all {PROBE_COUNT.toLocaleString("en-US")} panel probes by
+              gene, probe, or GRCh38 interval. {PROFILED_COUNT} carry group-level
+              predicted β.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Badge tone="neutral">GRCh38 / hg38</Badge>
             <Badge tone="warm" dot>
-              Pilot · {pilotRelease.n_profiled_cpgs} CpGs
+              485K probes · {PROFILED_COUNT} with β
             </Badge>
           </div>
         </div>
