@@ -169,7 +169,9 @@ export function ChromosomeRing({
                     ? "#D96A1F"
                     : isHovered
                       ? "#156E86"
-                    : `hsl(${204 + (index % 7) * 5} 42% ${index % 2 === 0 ? 54 : 62}%)`
+                    : `hsl(${
+                        188 + (index / Math.max(1, chromosomes.length - 1)) * 58
+                      } 44% ${index % 2 === 0 ? 52 : 59}%)`
                 }
                 strokeWidth={isActive ? 23 : isHovered ? 14 : 9}
                 strokeLinecap="butt"
@@ -198,6 +200,16 @@ export function ChromosomeRing({
             </g>
           );
         })}
+        {selected === "all" ? (
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r={RADIUS + 11}
+            fill="none"
+            stroke="rgba(26,113,137,0.16)"
+            strokeWidth={3}
+          />
+        ) : null}
         {arcs.map(({ entry, start, end }) => {
           if (entry.chr === "alt") return null;
           const angle = (start + end) / 2;

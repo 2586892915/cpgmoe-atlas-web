@@ -45,7 +45,7 @@ type AtlasPayload = {
   chromosomes: ChromosomeEntry[];
 };
 
-const LABEL_WIDTH = 154;
+const LABEL_WIDTH = 168;
 const ROW_HEIGHT = 22;
 const PAD_TOP = 12;
 const AXIS_HEIGHT = 34;
@@ -115,6 +115,8 @@ export function PanTissueAtlas() {
   const [hover, setHover] = useState<{
     x: number;
     y: number;
+    rowIndex: number;
+    column: number;
     title: string;
     detail: string;
     value: number;
@@ -175,20 +177,30 @@ export function PanTissueAtlas() {
   const displayValues = useMemo(() => {
     if (!rows.length) return [] as number[][];
     if (scaleMode === "beta") return rows.map((row) => row.values);
+    const deviations: number[] = [];
+    for (let column = 0; column < columns; column += 1) {
+      const columnValues = rows.map((entry) => entry.values[column] ?? 0);
+      const mean =
+        columnValues.reduce((sum, item) => sum + item, 0) / columnValues.length;
+      for (const item of columnValues) deviations.push(Math.abs(item - mean));
+    }
+    deviations.sort((left, right) => left - right);
+    const scale = Math.max(
+      0.004,
+      deviations[Math.floor(deviations.length * 0.8)] ?? 0.004,
+    );
     return rows.map((row) =>
       row.values.map((value, column) => {
         const columnValues = rows.map((entry) => entry.values[column] ?? 0);
         const mean =
           columnValues.reduce((sum, item) => sum + item, 0) / columnValues.length;
-        const variance =
-          columnValues.reduce((sum, item) => sum + (item - mean) ** 2, 0) /
-          columnValues.length;
-        const sd = Math.sqrt(variance);
-        const z = (value - mean) / Math.max(sd, 0.03);
-        return Math.max(0, Math.min(1, (z + 2) / 4));
+        const relative = Math.max(-1, Math.min(1, (value - mean) / scale));
+        const shaped =
+          Math.sign(relative) * Math.pow(Math.abs(relative), 0.85);
+        return Math.max(0, Math.min(1, 0.5 + 0.5 * shaped));
       }),
     );
-  }, [rows, scaleMode]);
+  }, [rows, columns, scaleMode]);
   const organSignals = useMemo(() => {
     if (!rows.length || !columns) return [];
     const means = rows.map(
@@ -276,6 +288,16 @@ export function PanTissueAtlas() {
           );
         }
       });
+
+      context.strokeStyle = "rgba(255,255,255,0.28)";
+      context.lineWidth = 1;
+      for (let rowIndex = 1; rowIndex < rows.length; rowIndex += 1) {
+        const y = PAD_TOP + rowIndex * ROW_HEIGHT - 0.5;
+        context.beginPath();
+        context.moveTo(LABEL_WIDTH, y);
+        context.lineTo(width - 10, y);
+        context.stroke();
+      }
 
       if (data.mode === "window" && data.focus && data.cpgs?.length) {
         const focusIndex = data.cpgs.findIndex((cpg) => cpg.cpg_id === data.focus);
@@ -370,7 +392,7 @@ export function PanTissueAtlas() {
     ) {
       return null;
     }
-    return { x, y, row: rows[rowIndex], column };
+    return { x, y, row: rows[rowIndex], rowIndex, column };
   }
 
   function handleMove(event: React.MouseEvent<HTMLCanvasElement>) {
@@ -379,7 +401,7 @@ export function PanTissueAtlas() {
       setHover(null);
       return;
     }
-    const { row, column, x, y } = hit;
+    const { row, rowIndex, column, x, y } = hit;
     const start = column * windowBinSize;
     const end = Math.min(columns, start + windowBinSize);
     const valueAt = (values: number[]) => {
@@ -398,6 +420,8 @@ export function PanTissueAtlas() {
       setHover({
         x,
         y,
+        rowIndex: hit.rowIndex,
+        column: hit.column,
         title: center.cpg_id,
         detail: `${center.chr}:${center.pos.toLocaleString("en-US")} · ${end - start} CpGs${center.genes ? ` · ${center.genes.split(";")[0]}` : ""}`,
         value: beta,
@@ -413,6 +437,8 @@ export function PanTissueAtlas() {
     setHover({
       x,
       y,
+      rowIndex: hit.rowIndex,
+      column: hit.column,
       title: `${bin.chr}:${bin.first_pos.toLocaleString("en-US")}–${bin.last_pos.toLocaleString("en-US")}`,
       detail: `${bin.n_cpgs} CpGs · ${prettyLabel(row.label)}`,
       value: beta,
@@ -523,7 +549,9 @@ export function PanTissueAtlas() {
       <section className="panel min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="micro-label">Predicted β · 16 organ systems</p>
+            <p className="text-[10px] font-medium tracking-[0.04em] text-ink-faint">
+              Predicted β · 16 organ systems
+            </p>
             <h2 className="mt-1 text-[20px] font-semibold text-ink">
               {data.mode === "window"
                 ? (
@@ -599,7 +627,7 @@ export function PanTissueAtlas() {
             </div>
             <div
               className="mt-1 flex gap-[2px] overflow-hidden"
-              style={{ paddingLeft: LABEL_WIDTH, paddingRight: 22 }}
+              style={{ paddingLeft: LABEL_WIDTH, paddingRight: 26 }}
             >
               {data.chromosomes
                 .filter((entry) => entry.chr !== "alt")
@@ -615,7 +643,7 @@ export function PanTissueAtlas() {
                       style={{
                         flexGrow: span,
                         flexBasis: 0,
-                        minWidth: entry.chr === "Y" ? 16 : 0,
+                        minWidth: entry.chr === "Y" ? 18 : 0,
                       }}
                       className={`h-5 min-w-0 overflow-hidden border text-[6.5px] transition-colors ${
                         active
@@ -641,6 +669,30 @@ export function PanTissueAtlas() {
             role="img"
             aria-label="Genome-wide predicted methylation heatmap across organ systems"
           />
+          {hover ? (
+            <>
+              <div
+                className="pointer-events-none absolute"
+                style={{
+                  left: LABEL_WIDTH,
+                  right: 10,
+                  top: PAD_TOP + hover.rowIndex * ROW_HEIGHT,
+                  height: ROW_HEIGHT - 1,
+                  background: "rgba(255,255,255,0.08)",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.55)",
+                }}
+              />
+              <div
+                className="pointer-events-none absolute w-px"
+                style={{
+                  left: hover.x,
+                  top: PAD_TOP,
+                  bottom: 10,
+                  background: "rgba(11,42,111,0.3)",
+                }}
+              />
+            </>
+          ) : null}
           {hover ? (
             <div
               className="pointer-events-none absolute z-10 max-w-[240px] border border-line bg-white px-2 py-1 text-[10px] shadow-panel"
@@ -738,9 +790,9 @@ export function PanTissueAtlas() {
           </div>
         </div>
         <p className="mt-3 text-[9px] leading-relaxed text-ink-faint">
-          Predicted β, not measured methylation. “Organ deviation” subtracts
-          the 16-organ mean at each CpG block; switch to absolute β for the raw
-          scale.
+          Predicted β, not measured methylation. “Organ deviation” subtracts the
+          16-organ mean and auto-scales color within the current view; switch
+          to absolute β for the raw scale.
         </p>
       </section>
     </div>
