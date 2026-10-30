@@ -84,6 +84,12 @@ Full-panel group means are served from the GitHub release
 tissue × cell type 1.0 GB; uint8, offset = `panel_index × n_groups`). The app
 reads single records with HTTP Range requests and caches them in memory.
 
+The Pan-tissue Atlas has three additional genome-ordered organ files in the
+same release: `organ_genome_u8.bin` (16 × 485,403), `organ_genome_bins_u8.bin`
+(16 × 2,048 overview bins) and `organ_chr_bins_u8.bin` (25 chromosomes × 320
+bins). `/api/v1/pilot/atlas` serves the overview, chromosome blocks, CpG
+windows and gene/CpG search from these files.
+
 `signatures.json` (2.1 MB) is derived from the same matrices: for every cell
 type and tissue, the top 40 CpGs by |β − panel mean| among CpGs with variance
 ≥ 0.005. It powers `/cell-types/[id]` and the tissue-level CpG table.
@@ -123,6 +129,7 @@ guess missing fields or paths.
 | GET | `/api/v1/pilot/groups` | list + filters (`q`, `tissue`, `cell_type`, `organ_system`, `high_confidence`) |
 | GET | `/api/v1/pilot/groups/{id}` | group detail + full-panel top CpGs |
 | GET | `/api/v1/pilot/heatmap` | organ-system and top-group matrices |
+| GET | `/api/v1/pilot/atlas` | full-panel organ atlas (`mode=overview`, `chr`, `start/end`, `q`) |
 | POST | `/api/v1/pilot/compare` | `{ group_a, group_b, cpg_ids[] }` → Δβ |
 
 All responses carry `data_mode: "pilot_predicted"`, `release_id`,

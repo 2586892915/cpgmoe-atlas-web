@@ -177,6 +177,37 @@ export function getProbeByIndex(index: number): ProbeRecord | null {
   return toRecord(rows[index], index);
 }
 
+let genomeOrderCache: number[] | null = null;
+
+function chromosomeRank(name: string): number {
+  const numbered = /^chr(\d+)$/.exec(name);
+  if (numbered) return Number(numbered[1]);
+  if (name === "chrX") return 23;
+  if (name === "chrY") return 24;
+  return 0;
+}
+
+export function genomeOrder(): number[] {
+  if (genomeOrderCache) return genomeOrderCache;
+  const names = rows.map((row) => (row[1] >= 0 ? data.chr[row[1]] : ""));
+  const altNames = [
+    ...new Set(names.filter((name) => name && chromosomeRank(name) === 0)),
+  ].sort();
+  const altRank = new Map(altNames.map((name, index) => [name, 100 + index]));
+  const ranks = names.map((name) => {
+    const rank = chromosomeRank(name);
+    if (rank) return rank;
+    return altRank.get(name) ?? 9_999;
+  });
+  genomeOrderCache = Array.from({ length: rows.length }, (_, index) => index).sort(
+    (left, right) =>
+      ranks[left] - ranks[right] ||
+      rows[left][2] - rows[right][2] ||
+      left - right,
+  );
+  return genomeOrderCache;
+}
+
 export type SearchCpgPayload = {
   cpg_id: string;
   chr: string | null;

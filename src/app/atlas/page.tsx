@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { AtlasExplorer } from "@/components/atlas/atlas-explorer";
-import { PilotHeatmap } from "@/components/pilot/pilot-heatmap";
+import { PanTissueAtlas } from "@/components/pilot/pan-tissue-atlas";
 import { Badge } from "@/components/ui/badge";
 import { IS_PILOT } from "@/lib/data-mode";
-import { pilotHeatmap, pilotRelease } from "@/lib/pilot";
+import { pilotRelease } from "@/lib/pilot";
 import { DEMO_CELLS } from "@/mock/cells";
 import { DEMO_DATASETS } from "@/mock/datasets";
 import { DEMO_CPGS } from "@/mock/methylation";
@@ -22,7 +22,6 @@ export default async function AtlasPage({
   const { dataset } = await searchParams;
 
   if (IS_PILOT) {
-    const heatmap = pilotHeatmap();
     return (
       <div className="shell py-8">
         <div className="flex flex-col gap-3 border-b border-line pb-4 lg:flex-row lg:items-end lg:justify-between">
@@ -31,26 +30,19 @@ export default async function AtlasPage({
               Pan-tissue Atlas
             </h1>
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-ink-soft">
-              Aggregated predicted β across 2,093 tissue and cell-type groups.
-              Heatmap first; no per-cell profiles in the browser.
+              All 485,403 panel CpGs across 16 organ systems, in genome order.
+              Choose a chromosome, then click a block to zoom to individual CpGs.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <Badge tone="neutral">{pilotRelease.n_profiled_cpgs} heatmap CpGs</Badge>
+            <Badge tone="primary" dot>
+              {pilotRelease.n_full_profile_cpgs.toLocaleString("en-US")} CpGs
+            </Badge>
+            <Badge tone="neutral">16 organ systems</Badge>
           </div>
         </div>
 
-        <div className="panel mt-5 p-4 sm:p-5">
-          <PilotHeatmap
-            data={{
-              cpg_ids: heatmap.cpg_ids,
-              organ_systems: heatmap.organ_systems,
-              top_groups: heatmap.top_groups,
-              scale: 1000,
-            }}
-          />
-        </div>
-
+        <PanTissueAtlas />
       </div>
     );
   }

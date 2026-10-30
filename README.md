@@ -18,8 +18,8 @@
 | 聚合方式 | 每个单细胞预测值的组内均值 |
 | 版本 | `pilot_3m_20261024` |
 
-- 新增页面：`/groups`、`/groups/[id]`；`/atlas` 改为热图优先；`/browser`、`/compare` 接入 pilot 数据。
-- 新增接口：`/api/v1/pilot/{release,search,cpgs/[id],groups,groups/[id],heatmap,compare}`。
+- 新增页面：`/groups`、`/groups/[id]`；`/atlas` 改为全量 Pan-tissue Atlas；`/browser`、`/compare` 接入 pilot 数据。
+- 新增接口：`/api/v1/pilot/{release,search,cpgs/[id],groups,groups/[id],heatmap,compare,atlas}`。
 - 回到 Phase 0 演示：构建时设置 `NEXT_PUBLIC_ATLAS_MODE=synthetic_demo`。
 - 数据来源、checkpoint sha256、覆盖边界见 `docs/PILOT_RELEASE.md`。
 
@@ -58,7 +58,7 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | `/` | 首页：全局搜索、四个入口、审计占位指标、模型与证据边界 |
 | `/datasets` | Phase 0 合成数据集表；pilot 模式下重定向到 `/tissues` |
 | `/datasets/[id]` | Phase 0 详情页；pilot 模式下重定向到 `/tissues` |
-| `/atlas` | 合成 UMAP、颜色映射、点选/框选、分组甲基化、Demo prediction API |
+| `/atlas` | 全量 Pan-tissue Atlas：染色体圆环选择 + 16 器官热图，485,403 CpG，可缩放到单个 CpG |
 | `/browser` | Gene / CpG probe / GRCh38 region 查询、基因示意、分布图、基因组轨道占位 |
 | `/compare` | 两组切换、群体均值、Δ 热图、无推断统计的边界声明 |
 | `/groups` | 兼容入口：重定向到 `/tissues`（组织优先） |
@@ -111,6 +111,7 @@ npm run qa:ui     # 需要先运行 npm run dev；使用本机 Edge 生成截图
 | GET | `/api/v1/pilot/groups` | 组列表（`q`、`tissue`、`cell_type`、`organ_system`、`high_confidence`） |
 | GET | `/api/v1/pilot/groups/{id}` | 组详情 + 全量 top CpGs |
 | GET | `/api/v1/pilot/heatmap` | 器官系统 / top groups 的 512-CpG 矩阵 |
+| GET | `/api/v1/pilot/atlas` | 全量器官热图（`mode=overview`、`chr=`、`start/end`、`q=`） |
 | POST | `/api/v1/pilot/compare` | `{ group_a, group_b, cpg_ids[] }` → Δβ，`statistical_tests: unavailable` |
 | POST | `/api/v1/preview/compare` | 合成 Δ 预览；`statistical_tests: "unavailable_in_demo"` |
 

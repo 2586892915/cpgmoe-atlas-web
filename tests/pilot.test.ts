@@ -14,12 +14,15 @@ import {
   tissueCpgs,
 } from "@/lib/pilot";
 import {
+  genomeOrder,
   getProbe,
+  getProbeByIndex,
   PROFILED_COUNT,
   PROBE_COUNT,
   searchProbes,
 } from "@/lib/probes";
 import { FULL_LEVELS, fullGroups, readFullRecord } from "@/lib/full-profiles";
+import genomeMeta from "@/data/pilot/full/organ_genome_meta.json";
 
 describe("pilot data layer", () => {
   it("exposes the 3M-cell pilot totals", () => {
@@ -198,5 +201,19 @@ describe("full-panel profile store", () => {
     } finally {
       globalThis.fetch = original;
     }
+  });
+});
+
+describe("genome-ordered atlas", () => {
+  it("matches the published chromosome order", () => {
+    const order = genomeOrder();
+    expect(order).toHaveLength(genomeMeta.n_cpgs);
+    expect(getProbeByIndex(order[0])?.probe_id).toBe(genomeMeta.first_cpg);
+    expect(getProbeByIndex(order[order.length - 1])?.probe_id).toBe(
+      genomeMeta.last_cpg,
+    );
+    expect(
+      genomeMeta.chromosomes.reduce((sum, entry) => sum + entry.n, 0),
+    ).toBe(genomeMeta.n_cpgs);
   });
 });
