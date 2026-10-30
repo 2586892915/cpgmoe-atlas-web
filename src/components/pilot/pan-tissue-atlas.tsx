@@ -606,7 +606,7 @@ export function PanTissueAtlas() {
             </div>
             <div
               className="mt-1 flex gap-[2px] overflow-hidden"
-              style={{ paddingLeft: LABEL_WIDTH, paddingRight: 14 }}
+              style={{ paddingLeft: LABEL_WIDTH, paddingRight: 22 }}
             >
               {data.chromosomes
                 .filter((entry) => entry.chr !== "alt")
