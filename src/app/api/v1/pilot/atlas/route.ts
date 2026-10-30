@@ -1,6 +1,7 @@
 import { pilotError, pilotResponse } from "@/lib/api";
 import organMeta from "@/data/pilot/full/organ_meta.json";
 import genomeMeta from "@/data/pilot/full/organ_genome_meta.json";
+import atlasBins from "@/data/pilot/full/atlas_bins_b64.json";
 import { pilotEnvelope } from "@/lib/pilot";
 import {
   genomeOrder,
@@ -16,13 +17,13 @@ const BASE_URL = (
   "https://github.com/2586892915/cpgmoe-atlas-web/releases/download/pilot-full450k-v1"
 ).replace(/\/$/, "");
 const GENOME_FILE = "organ_genome_u8.bin";
-const BINS_FILE = "organ_genome_bins_u8.bin";
-const CHR_BINS_FILE = "organ_chr_bins_u8.bin";
 const N_ORGANS = 16;
 const N_CPGS = 485_403;
 const MAX_WINDOW = 4_096;
 const OVERVIEW_BINS = 512;
 const CHR_BIN_SIZE = 320;
+const OVERVIEW_RAW = Buffer.from(atlasBins.overview, "base64");
+const CHR_RAW = Buffer.from(atlasBins.chromosomes, "base64");
 
 type GenomeMeta = {
   n_cpgs: number;
@@ -40,7 +41,6 @@ const META = genomeMeta as unknown as GenomeMeta;
 const ORGANS = (organMeta as unknown as OrganMeta).groups;
 
 let genomePosition: Uint32Array | null = null;
-let chromosomeBins: Buffer | null = null;
 
 function genomePositionOf(panelIndex: number): number {
   if (!genomePosition) {
@@ -74,16 +74,6 @@ async function readRange(
     throw new Error(`short range read (${buffer.length} of ${length})`);
   }
   return buffer;
-}
-
-async function readChromosomeBins(): Promise<Buffer> {
-  if (chromosomeBins) return chromosomeBins;
-  chromosomeBins = await readRange(
-    CHR_BINS_FILE,
-    0,
-    META.chromosomes.length * CHR_BIN_SIZE * N_ORGANS,
-  );
-  return chromosomeBins;
 }
 
 function chromosomeList() {
@@ -203,7 +193,7 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     if (mode === "overview") {
-      const raw = await readRange(BINS_FILE, 0, META.n_bins * N_ORGANS);
+      const raw = OVERVIEW_RAW;
       const factor = META.n_bins / OVERVIEW_BINS;
       const values = Array.from({ length: N_ORGANS }, () => [] as number[]);
       for (let bin = 0; bin < OVERVIEW_BINS; bin += 1) {
@@ -275,7 +265,7 @@ export async function GET(request: Request): Promise<Response> {
     }
     const range = META.chromosomes[chrIndex];
     const width = Math.min(CHR_BIN_SIZE, range.n);
-    const raw = await readChromosomeBins();
+    const raw = CHR_RAW;
     const offset = chrIndex * CHR_BIN_SIZE * N_ORGANS;
     const values = Array.from({ length: N_ORGANS }, () => [] as number[]);
     for (let bin = 0; bin < width; bin += 1) {
