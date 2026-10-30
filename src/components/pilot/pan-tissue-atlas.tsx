@@ -452,7 +452,6 @@ export function PanTissueAtlas() {
   }
 
   const selected = data.chromosome;
-  const totalBins = displayColumns * layout.rows;
   const regionCpGs =
     data.mode === "window" ? data.cpgs?.length ?? 0 : data.end - data.start;
   const regionMb =
@@ -584,15 +583,9 @@ export function PanTissueAtlas() {
         <div className="mt-3 flex items-center gap-2 text-[10px] text-ink-faint">
           <span>{layout.rows} organ rows</span>
           <span>·</span>
-          <span>{displayColumns.toLocaleString("en-US")} columns</span>
-          {windowBinSize > 1 ? (
-            <>
-              <span>·</span>
-              <span>{columns.toLocaleString("en-US")} CpGs</span>
-            </>
-          ) : null}
+          <span>{displayColumns.toLocaleString("en-US")} bins</span>
           <span>·</span>
-          <span>{totalBins.toLocaleString("en-US")} values</span>
+          <span>{regionCpGs.toLocaleString("en-US")} CpGs</span>
           <span className="ml-auto">
             {data.mode === "window" ? "click a CpG to open it" : "click a block to zoom"}
           </span>
